@@ -23,6 +23,7 @@
     <script src="lib/plugin/tags.js"></script>
     <script src="lib/plugin/unsupported.js"></script>
     <script src="lib/plugin/filter.js"></script>
+    <script src="lib/plugin/dylan.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/annotator.css">
   </head>
@@ -105,13 +106,7 @@
           .addPlugin('Filter', {
             addAnnotationFilter: false
           })
-          .addPlugin('Tags')
-          .addPlugin('Permissions', {
-            user: 'alice',
-            permissions: {
-              update: ['alice']
-            }
-          })
+          .addPlugin('AnnotateItPermissions')
           .addPlugin('Store', {
             prefix: 'http://localhost:5000/api',
             loadFromSearch: {
@@ -120,7 +115,12 @@
             annotationData: {
               uri: 'http://localhost/annotator/dev.html'
             }
-          });
+          })
+          .addPlugin('Dylan');
+
+        devAnnotator.on('annotationDeserializeFail', function (r, e) {
+          console.log("Setup fail:", r, e);
+        });
 
       }(jQuery));
     </script>
