@@ -266,6 +266,7 @@ class Range.NormalizedRange
       # Character offsets (integer)
       startOffset: start[1]
       endOffset: end[1]
+      text: this.text()
     })
 
   # Public: Creates a concatenated String of the contents of all the text nodes
@@ -322,6 +323,7 @@ class Range.SerializedRange
     @startOffset = obj.startOffset
     @end         = obj.end
     @endOffset   = obj.endOffset
+    @text        = obj.text
 
   # Public: Creates a NormalizedRange.
   #
@@ -376,4 +378,5 @@ class Range.SerializedRange
       startOffset: @startOffset
       end: @end
       endOffset: @endOffset
+      text: @text
     }

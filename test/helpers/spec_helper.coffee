@@ -32,11 +32,6 @@ class this.MockSelection
   resolveXPath: (xpath) ->
     document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
 
-this.textInNormedRange = (range) ->
-  textNodes = $(range.commonAncestor).textNodes()
-  textNodes = textNodes[textNodes.index(range.start)..textNodes.index(range.end)].get()
-  textNodes.reduce(((acc, next) -> acc += next.nodeValue), "")
-
 this.DateToISO8601String = (format=6, offset) ->
   ###
   accepted values for the format [1-6]:

@@ -72,7 +72,6 @@ describe 'Range', ->
       expect(obj.startOffset).toEqual(13)
       expect(obj.end).toEqual("/p/strong")
       expect(obj.endOffset).toEqual(27)
-      expect(JSON.stringify(obj)).toEqual('{"start":"/p/strong","startOffset":13,"end":"/p/strong","endOffset":27}')
 
   describe "BrowserRange", ->
     beforeEach ->
@@ -82,7 +81,7 @@ describe 'Range', ->
     it "normalize() returns a normalized range", ->
       norm = r.normalize()
       expect(norm.start).toBe(norm.end)
-      expect(textInNormedRange(norm)).toEqual('habitant morbi')
+      expect(norm.text()).toEqual('habitant morbi')
 
     testBrowserRange = (i) ->
       ->
@@ -90,7 +89,7 @@ describe 'Range', ->
         range = new Range.BrowserRange(sel.getRangeAt(0))
         norm  = range.normalize(fix())
 
-        expect(textInNormedRange(norm)).toEqual(sel.expectation)
+        expect(norm.text()).toEqual(sel.expectation)
 
     for i in [0...testData.length]
       it "should parse test range #{i} (#{testData[i][5]})", testBrowserRange(i)
@@ -114,6 +113,11 @@ describe 'Range', ->
 
     it "text() returns the textual contents of the range", ->
       expect(r.text()).toEqual(sel.expectation)
+
+    it "serialize() returns a serialized version of the range", ->
+      seri = r.serialize()
+      expect(seri.text).toEqual(sel.expectation)
+      expect(seri instanceof Range.SerializedRange).toBeTruthy()
 
     describe "limit", ->
       headText = null

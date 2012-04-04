@@ -303,12 +303,10 @@ describe 'Annotator', ->
     sniffedRange= null
 
     beforeEach ->
-      quote   = 'This is some annotated text'
       comment = 'This is a comment on an annotation'
       element = $('<span />')
 
       normalizedRange = {
-        text: jasmine.createSpy('normalizedRange#text()').andReturn(quote)
         serialize: jasmine.createSpy('normalizedRange#serialize()').andReturn({})
       }
       sniffedRange = {
@@ -326,14 +324,6 @@ describe 'Annotator', ->
 
     it "should return the annotation object with a comment", ->
       expect(annotation.text).toEqual(comment)
-
-    it "should return the annotation object with the quoted text", ->
-      expect(annotation.quote).toEqual(quote)
-
-    it "should trim whitespace from start and end of quote", ->
-      normalizedRange.text.andReturn('\n\t   ' + quote + '   \n')
-      annotation = annotator.setupAnnotation(annotationObj)
-      expect(annotation.quote).toEqual(quote)
 
     it "should set the annotation.ranges", ->
       expect(annotation.ranges).toEqual([{}])
