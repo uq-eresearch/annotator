@@ -248,7 +248,7 @@ class Annotator.Plugin.Permissions extends Annotator.Plugin
   #
   # Returns nothing.
   updatePermissionsField: (action, field, annotation) =>
-    field = $(field).show()
+    field = jQuery(field).show()
     input = field.find('input').removeAttr('disabled')
 
     # Do not show field if current user is not admin.
@@ -275,7 +275,7 @@ class Annotator.Plugin.Permissions extends Annotator.Plugin
 
     dataKey = type + '-permissions'
 
-    if $(field).find('input').is(':checked')
+    if jQuery(field).find('input').is(':checked')
       annotation.permissions[type] = []
     else
       # Clearly, the permissions model allows for more complex entries than this,
@@ -293,7 +293,7 @@ class Annotator.Plugin.Permissions extends Annotator.Plugin
   #
   # Returns nothing.
   updateViewer: (field, annotation, controls) =>
-    field = $(field)
+    field = jQuery(field)
 
     username = @options.userString annotation.user
     if annotation.user and username and typeof username == 'string'

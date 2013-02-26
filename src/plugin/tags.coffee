@@ -7,7 +7,7 @@ class Annotator.Plugin.Tags extends Annotator.Plugin
     # of the tags input as an argument, and returns an array of
     # tags.
     parseTags: (string) ->
-      string = $.trim(string)
+      string = jQuery.trim(string)
 
       tags = []
       tags = string.split(/\s+/) if string
@@ -51,7 +51,7 @@ class Annotator.Plugin.Tags extends Annotator.Plugin
         property: 'tags'
         isFiltered: Annotator.Plugin.Tags.filterCallback
 
-    @input = $(@field).find(':input')
+    @input = jQuery(@field).find(':input')
 
   # Public: Extracts tags from the provided String.
   #
@@ -130,11 +130,11 @@ class Annotator.Plugin.Tags extends Annotator.Plugin
   #
   # Returns nothing.
   updateViewer: (field, annotation) ->
-    field = $(field)
+    field = jQuery(field)
 
-    if annotation.tags and $.isArray(annotation.tags) and annotation.tags.length
+    if annotation.tags and jQuery.isArray(annotation.tags) and annotation.tags.length
       field.addClass('annotator-tags').html(->
-        string = $.map(annotation.tags,(tag) ->
+        string = jQuery.map(annotation.tags,(tag) ->
             '<span class="annotator-tag">' + Annotator.$.escape(tag) + '</span>'
         ).join(' ')
       )

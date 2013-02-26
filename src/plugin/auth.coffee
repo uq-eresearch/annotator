@@ -131,7 +131,7 @@ class Annotator.Plugin.Auth extends Annotator.Plugin
   requestToken: ->
     @requestInProgress = true
 
-    $.ajax
+    jQuery.ajax
       url: @options.tokenUrl
       dataType: 'text'
       xhrFields:
@@ -219,7 +219,7 @@ class Annotator.Plugin.Auth extends Annotator.Plugin
   # Returns nothing.
   updateHeaders: ->
     current = @element.data('annotator:headers')
-    @element.data('annotator:headers', $.extend(current, {
+    @element.data('annotator:headers', jQuery.extend(current, {
       'x-annotator-auth-token': @token,
     }))
 
