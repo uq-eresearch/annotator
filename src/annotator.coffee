@@ -59,6 +59,8 @@ class Annotator extends Delegator
 
   selectedRanges: null
 
+  selection: null
+
   mouseIsDown: false
 
   ignoreMouseup: false
@@ -571,20 +573,24 @@ class Annotator extends Delegator
     if @ignoreMouseup
       return
 
-    # Get the currently selected ranges.
-    @selectedRanges = this.getSelectedRanges()
+    if @adder.data('selection')
+      @selection = @adder.data('selection')
+    else
+      # Get the currently selected ranges.
+      @selectedRanges = this.getSelectedRanges()
 
-    for range in @selectedRanges
-      container = range.commonAncestor
-      if $(container).hasClass('annotator-hl')
-        container = $(container).parents('[class^=annotator-hl]')[0]
-      return if this.isAnnotator(container)
+      for range in @selectedRanges
+        container = range.commonAncestor
+        if $(container).hasClass('annotator-hl')
+          container = $(container).parents('[class^=annotator-hl]')[0]
+        return if this.isAnnotator(container)
 
     if event and @selectedRanges.length
       @adder
         .css(util.mousePosition(event, @wrapper[0]))
         .show()
     else
+      @adder.removeData('selection')
       @adder.hide()
 
   # Public: Determines if the provided element is part of the annotator plugin.
