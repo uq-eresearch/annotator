@@ -65,6 +65,13 @@ class Annotator extends Delegator
 
   viewerHideTimer: null
 
+  annotationPlugins: []
+
+  # Public: Add a handler for a different type of annotation target
+  # eg image region, semantic element
+  addAnnotationPlugin: (plugin) ->
+    @annotationPlugins.push plugin
+
   # Public: Creates an instance of the Annotator. Requires a DOM Element in
   # which to watch for annotations as well as any options.
   #
@@ -100,6 +107,8 @@ class Annotator extends Delegator
 
     # Create adder
     this.adder = $(this.html.adder).appendTo(@wrapper).hide()
+
+    return
 
   # Wraps the children of @element in a @wrapper div. NOTE: This method will also
   # remove any script elements inside @element to prevent them re-executing.
@@ -285,7 +294,13 @@ class Annotator extends Delegator
   #
   # Returns the initialised annotation.
   setupAnnotation: (annotation) ->
-    root = @wrapper[0]
+    for plugin in @annotationPlugins
+      if plugin.handlesAnnotation(annotation)
+        return plugin.setupAnnotation(annotation)
+
+
+    root = @wrapper[0] 
+
     annotation.ranges or= @selectedRanges
 
     normedRanges = []
@@ -639,8 +654,6 @@ class Annotator extends Delegator
     annotation = this.setupAnnotation(this.createAnnotation())
     $(annotation.highlights).addClass('annotator-hl-temporary')
 
-    # Subscribe to the editor events
-
     # Make the highlights permanent if the annotation is saved
     save = =>
       do cleanup
@@ -659,6 +672,7 @@ class Annotator extends Delegator
       this.unsubscribe('annotationEditorHidden', cancel)
       this.unsubscribe('annotationEditorSubmit', save)
 
+    # Subscribe to the editor events
     this.subscribe('annotationEditorHidden', cancel)
     this.subscribe('annotationEditorSubmit', save)
 
