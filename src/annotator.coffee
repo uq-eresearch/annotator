@@ -657,7 +657,16 @@ class Annotator extends Delegator
 
     # Show a temporary highlight so the user can see what they selected
     # Also extract the quotation and serialize the ranges
-    annotation = this.setupAnnotation(this.createAnnotation())
+    annotation = this.createAnnotation()
+
+    # Handling for image and other types of annotations
+    if @adder.data('selection')?
+      selection = @adder.data('selection')
+      @adder.removeData('selection')
+      annotation.selection = selection
+
+
+    annotation = this.setupAnnotation(annotation)
     $(annotation.highlights).addClass('annotator-hl-temporary')
 
     # Make the highlights permanent if the annotation is saved
