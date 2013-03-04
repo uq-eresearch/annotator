@@ -39,16 +39,17 @@ class Annotator.Plugin.Image extends Annotator.Plugin
 
   # Handler for when an image region is selected
   # Show the adder in an appropriate position
-  _onSelectEnd: (img, selection) =>
+  _onSelectEnd: (image, selection) =>
     if selection.width == 0 or selection.height == 0
       @annotator.adder.hide()
       return
 
     # save locally
-    @currentImage = img
+    @currentImage = image
     @selection = selection
+    @selection.image = image
 
-    imgPosition = jQuery(img).position()
+    imgPosition = jQuery(image).position()
     adderPosition = {
       top: imgPosition.top + selection.y1 - 5,
       left: imgPosition.left + selection.x2 + 5
@@ -57,7 +58,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     @annotator.adder.data('selection', selection)
     @annotator.adder.css(adderPosition).show()
 
-  _onSelectStart: (img, selection) =>
+  _onSelectStart: (image, selection) =>
     @adder?.removeData('selection')
     @annotator.adder.hide()
 
@@ -73,18 +74,53 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       @annotator.subscribe event, this.updateImageHighlights
     this
 
+
+
   # Public: Checks whether this plugin has special code for handling
   # particular types of annotations. eg. specific target resources/selectors
   handlesAnnotation: (annotation) ->
-    if annotation.target?
+    if annotation.selection?
       return true
     else
       return false
 
   setupAnnotation: (annotation) ->
+    this.deselect()
+    this.createMarker(annotation)
 
 
     annotation
+
+  borderWidth: 2
+  borderColour: 'red'
+
+
+  createMarker: (annotation) ->
+    marker = jQuery('<span>').appendTo(document.body)
+    annotation.marker = marker
+    marker.data("annotation", annotation)
+
+    this.updateMarkerPosition(annotation)
+
+
+  # Can be used both for a new marker, and when the page
+  # size changes
+  updateMarkerPosition: (annotation) ->
+    image = annotation.selection.image
+    selection = annotation.selection
+    marker = annotation.marker
+
+    imgPosition = jQuery(image).offset()
+    marker.css(
+        position: 'absolute'
+        left: imgPosition.left + selection.x1 + @borderWidth
+        top: imgPosition.top + selection.y1 + @borderWidth
+        border: @borderWidth + 'px solid ' + @borderColour
+#        zIndex: _n.parent().css('zIndex')
+    )
+    marker.width(selection.width - @borderWidth * 2)
+    marker.height(selection.height - @borderWidth * 2);
+    marker.addClass('annotator-hl')
 
 
   # Public: Updates the displayed highlighted regions of images
@@ -93,34 +129,13 @@ class Annotator.Plugin.Image extends Annotator.Plugin
 
 
 class Annotator.Annotation
-  displayMarker: ->
+  createMarker: ->
 
 
 
 class Annotator.ImageAnnotation extends Annotator.Annotation
 
-  borderWidth: 2
-  borderColour: 'red'
 
-  marker: null
-
-  image: null
-
-  selector: null
-
-  displayMarker: ->
-    @marker = jQuery('<span>').appendTo(document)
-    imgPosition = @image.position()
-    @marker.css(
-        position: 'absolute'
-        left: imgPosition.left + @selector.x1 + @borderWidth
-        top: imgPosition.top + @selector.y1 + @borderWidth
-        border: @borderWidth + 'px solid ' + @borderColour
-#        zIndex: _n.parent().css('zIndex')
-    )
-    @marker.width(@selector.width - borderWidth * 2)
-    @marker.height(@selector.height - borderWidth * 2);
-    @marker.addClass('annotator-hl')
 
   hideMarker: ->
     @marker?.hide()
