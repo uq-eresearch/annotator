@@ -22,16 +22,23 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     jQuery(document).bind({
       "mousedown": this.deselect
     })
+    jQuery(window).resize(this._onWindowResized)
 
     # Add this plugin as a handler for annotations with an
     # 'image' target
     @annotator.addAnnotationPlugin this
 
-    # with a callback to creating an image annotation
-
-
     # Setup listeners to show existing annotations
     this._setupListeners()
+
+  _onWindowResized: =>
+    annoPlugin = this
+    jQuery(document).find('span.annotator-hl').map(->
+      console.log(this)
+      annotation = jQuery(this).data('annotation')
+      if annotation
+        annoPlugin.updateMarkerPosition(annotation)
+      )
 
   deselect: =>
     if @currentImage
