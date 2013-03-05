@@ -34,7 +34,6 @@ class Annotator.Plugin.Image extends Annotator.Plugin
   _onWindowResized: =>
     annoPlugin = this
     jQuery(document).find('span.annotator-hl').map(->
-      console.log(this)
       annotation = jQuery(this).data('annotation')
       if annotation
         annoPlugin.updateMarkerPosition(annotation)
@@ -113,6 +112,9 @@ class Annotator.Plugin.Image extends Annotator.Plugin
   # Can be used both for a new marker, and when the page
   # size changes
   updateMarkerPosition: (annotation) ->
+    # if not an image annotation
+    if not annotation.selection
+      return
     image = annotation.selection.image
     selection = annotation.selection
     marker = annotation.marker
@@ -127,7 +129,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     )
     marker.width(selection.width - @borderWidth * 2)
     marker.height(selection.height - @borderWidth * 2);
-    marker.addClass('annotator-hl')
+    marker.addClass('annotator-hl annotator-image')
 
 
   # Public: Updates the displayed highlighted regions of images
