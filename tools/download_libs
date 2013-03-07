@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd "$(dirname "$0")"
+cd ../lib/vendor
+
+wget -O - http://odyniec.net/projects/imgareaselect/jquery.imgareaselect-0.9.10.zip > jquery.imgareaselect-0.9.10.zip
+unzip -o jquery.imgareaselect-0.9.10.zip
+rm jquery.imgareaselect-0.9.10.zip
