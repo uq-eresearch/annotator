@@ -107,6 +107,9 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     this.deselect()
     this.createMarker(annotation)
 
+    annotation.removeMarkers = ->
+      this.marker.remove()
+
 
     annotation
 
