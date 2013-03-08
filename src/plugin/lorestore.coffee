@@ -456,7 +456,8 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
           '@id': targetsrid
           '@type': 'oa:SpecificResource'
           'oa:hasSource':  
-            '@id': if annotation.selection then annotation.selection.image.src else document.location.href
+             # FIXME: we need to store uri of target resource for text resources too and get this from the anno object - only use location.href as last resort
+            '@id': if annotation.selection then jQuery(annotation.selection.image).data("id") else document.location.href
           'oa:hasSelector':
              '@id': targetselid
         }
