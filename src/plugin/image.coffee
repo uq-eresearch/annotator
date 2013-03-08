@@ -61,7 +61,20 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       left: imgPosition.left + selection.x2 + 5
     }
 
+    percentSelection = {
+      x1: selection.x1 / image.width
+      x2: selection.x2 / image.width
+      y1: selection.y1 / image.height
+      y2: selection.y2 / image.height
+      width: selection.width / image.width
+      height: selection.height / image.height
+    }
+
+    console.log(selection)
+    console.log(percentSelection)
     @annotator.adder.data('selection', selection)
+    @annotator.adder.data('percentSelection', percentSelection)
+
     @annotator.adder.css(adderPosition).show()
 
   _onSelectStart: (image, selection) =>
@@ -129,6 +142,18 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     )
     marker.width(selection.width - @borderWidth * 2)
     marker.height(selection.height - @borderWidth * 2);
+
+    selection = annotation.percentSelection
+
+    marker.css(
+      position: 'absolute'
+      left: imgPosition.left + (selection.x1 * image.width) + @borderWidth
+      top: imgPosition.top + (selection.y1 * image.height) + @borderWidth
+      border: @borderWidth + 'px solid ' + @borderColour
+    )
+    marker.width((selection.width * image.width) - @borderWidth * 2)
+    marker.height((selection.height * image.height) - @borderWidth * 2);
+
     marker.addClass('annotator-hl annotator-image')
 
 

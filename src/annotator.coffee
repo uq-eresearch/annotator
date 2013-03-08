@@ -665,6 +665,9 @@ class Annotator extends Delegator
       @adder.removeData('selection')
       annotation.selection = selection
 
+      annotation.percentSelection = @adder.data('percentSelection')
+      @adder.removeData('percentSelection')
+
 
     annotation = this.setupAnnotation(annotation)
     $(annotation.highlights).addClass('annotator-hl-temporary')
