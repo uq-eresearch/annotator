@@ -10,13 +10,13 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     emulateHTTP: false
     prefix: '/lorestore'
     urls:
-      create:  '/oa'
+      create:  '/oa/'
       read:    ':id'
       update:  ':id'
       destroy: ':id'
-      search:  '/oa/?annotates=:pageurl'
+      search:  '/oa/'
 
-  # Public: The contsructor initialases the LoreStore plugin instance. It requires the
+  # Public: The constructor initialases the LoreStore plugin instance. It requires the
   # Annotator#element and an Object of options.
   #
   # element - This must be the Annotator#element in order to listen for events.
@@ -195,18 +195,21 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   #
   # Returns nothing.
   _onLoadAnnotations: (data=[]) =>
-    @annotations = []
     # map OA results into internal annotator format
+    @loads--
     annos = this._findAnnos(data['@graph'])
     for anno in annos
       body = this._findById(data['@graph'], anno['hasBody'])
       target = this._findById(data['@graph'], anno['hasTarget'])
       targetsel = this._findById(data['@graph'],target['hasSelector'])
       tempanno = {
-        id : anno['@id']
+        "id" : anno['@id']
         "text": body.chars
-        "quote": targetsel.exact
-        "ranges": [
+        "ranges": []
+      }
+      if targetsel && targetsel.exact
+        tempanno.quote = targetsel.exact
+        tempanno.ranges = [
           {
             "start": targetsel["lorestore:startElement"]
             "startOffset": targetsel["lorestore:startOffset"]
@@ -214,9 +217,25 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
             "endOffset": targetsel["lorestore:endOffset"]
           }
         ]
-      }
+      else if targetsel && targetsel.value && targetsel.value.match("xywh=")
+        image = jQuery("[data-id='" + target.hasSource + "']")
+        if image.length > 0
+          image = image[0]
+        selectiondata = targetsel.value.split("=")[1].split(",")
+        tempanno.selection = 
+          "x1": parseInt(selectiondata[0])
+          "y1": parseInt(selectiondata[1])
+          "x2": parseInt(selectiondata[0]) + parseInt(selectiondata[2])
+          "y2": parseInt(selectiondata[1]) + parseInt(selectiondata[3])
+          "width": parseInt(selectiondata[2])
+          "height": parseInt(selectiondata[3])
+          "image": image
+
       @annotations.push tempanno
-    @annotator.loadAnnotations(@annotations.slice()) # Clone array
+      
+    if(@loads == 0)
+      console.log("annotator load annotations",@annotations)
+      @annotator.loadAnnotations(@annotations.slice()) # Clone array
 
   # Public: Performs the same task as LoreStore.#loadAnnotations() but calls the
   # 'search' URI with an optional query string.
@@ -232,7 +251,20 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   #
   # Returns nothing.
   loadAnnotationsFromSearch: (searchOptions) ->
+    @annotations = []
+    @loads = 1;
+    # search for annotations on embedded resources 
+    jQuery('[data-id]').each (index, element) =>
+      id = jQuery(element).data('id')
+      @loads++
+      this._apiRequest 'search', {'annotates': id}, this._onLoadAnnotations
+
+    # search for annotations on this page
+    if !searchOptions
+      searchOptions = {}
+    searchOptions.annotates = document.location.href 
     this._apiRequest 'search', searchOptions, this._onLoadAnnotations
+
 
   # Public: Dump an array of serialized annotations
   #
@@ -265,7 +297,8 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   # Returns jXMLHttpRequest object.
   _apiRequest: (action, obj, onSuccess) ->
     id  = obj && obj.id
-    url = this._urlFor(action, id)
+    resourceuri = obj && obj.resourceuri
+    url = this._urlFor(action, id, resourceuri)
     options = this._apiRequestOptions(action, obj, onSuccess)
 
     request = jQuery.ajax(url, options)
@@ -349,13 +382,13 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   #   # => Returns "/store/search"
   #
   # Returns URL String.
-  _urlFor: (action, id) ->
+  _urlFor: (action, id, resourceuri) ->
     if action != 'read' && action != 'search' && action != 'create'
       url = id
     else
       url = if @options.prefix? then @options.prefix else ''
       url += @options.urls[action]
-      url = url.replace(/:pageurl/, encodeURIComponent(document.location.href))
+      url = url.replace(/:resourceuri/, if resourceuri then encodeURIComponent(resourceuri) else encodeURIComponent(document.location.href))
     url
 
   # Maps an action to an HTTP method.
@@ -395,50 +428,61 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     # Preload with extra data.
     jQuery.extend(annotation, @options.annotationData)
     
-    bodysr = 'urn:uuid:' + this._uuid()
-    targetsr = 'urn:uuid:' + this._uuid()
-    targetsel = 'urn:uuid:' + this._uuid()
+    bodysrid = 'urn:uuid:' + this._uuid()
+    targetsrid = 'urn:uuid:' + this._uuid()
+    targetselid = 'urn:uuid:' + this._uuid()
+    # TODO: generate annotatedBy, annotatedAt
     tempanno = {
       '@context':
         "oa": "http://www.w3.org/ns/oa#"
         "dc": "http://purl.org/dc/elements/1.1/"
         "cnt": "http://www.w3.org/2011/content#"
         "lorestore": "http://auselit.metadata.net/lorestore/"
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
       '@graph': [
         {
           '@id': if annotation.id then annotation.id else 'http://example.org/dummy'
           '@type': 'oa:Annotation'
           'oa:hasBody': 
-            '@id': bodysr
+            '@id': bodysrid
           'oa:hasTarget':
-            '@id': targetsr
+            '@id': targetsrid
         },{
-          '@id': bodysr
+          '@id': bodysrid
           '@type': 'cnt:ContentAsText'
           'cnt:chars': annotation.text
           'dc:format': 'text/plain' 
         },{
-          '@id': targetsr
+          '@id': targetsrid
           '@type': 'oa:SpecificResource'
           'oa:hasSource':  
-            '@id': document.location.href
+            '@id': if annotation.selection then annotation.selection.image.src else document.location.href
           'oa:hasSelector':
-             '@id': targetsel
-        }, {
-          '@id': targetsel
-          '@type': ['oa:TextPositionSelector','oa:TextQuoteSelector']
-          'oa:exact': annotation.quote
-          # store a direct copy of the annotator text range data for now
-          'lorestore:startOffset': annotation.ranges[0].startOffset
-          'lorestore:endOffset': annotation.ranges[0].endOffset
-          'lorestore:startElement': annotation.ranges[0].start
-          'lorestore:endElement': annotation.ranges[0].end
-        } 
+             '@id': targetselid
+        }
       ]
     }
+    console.log("the annotation is ",annotation)
+    if annotation.quote
+      # text annotation
+      targetselector = 
+        '@id': targetselid
+        '@type': ['oa:TextPositionSelector','oa:TextQuoteSelector']
+        'oa:exact': annotation.quote
+        # store a direct copy of the annotator text range data for now
+        'lorestore:startOffset': annotation.ranges[0].startOffset
+        'lorestore:endOffset': annotation.ranges[0].endOffset
+        'lorestore:startElement': annotation.ranges[0].start
+        'lorestore:endElement': annotation.ranges[0].end
+    else if annotation.selection
+      targetselector = 
+        '@id': targetselid
+        '@type': 'oa:FragmentSelector'
+        'rdf:value': 'xywh=' + annotation.selection.x1 + ',' + annotation.selection.y1 + ',' + annotation.selection.width + ',' + annotation.selection.height
 
+    tempanno['@graph'].push targetselector
     data = JSON.stringify(tempanno)
-
+    console.log("dataFor",data)
     data
 
   # jQuery.ajax() callback. Displays an error notification to the user if
@@ -482,6 +526,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     found
 
   # generate a UUID (used for inline bodies etc)
+  # from https://gist.github.com/1893440
   _uuid: =>
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) ->
       r = Math.random() * 16 | 0
