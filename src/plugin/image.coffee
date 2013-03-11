@@ -61,7 +61,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       left: imgPosition.left + selection.x2 + 5
     }
 
-    percentSelection = {
+    relativeSelection = {
       x1: selection.x1 / image.width
       x2: selection.x2 / image.width
       y1: selection.y1 / image.height
@@ -71,9 +71,9 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     }
 
     console.log(selection)
-    console.log(percentSelection)
+    console.log(relativeSelection)
     @annotator.adder.data('selection', selection)
-    @annotator.adder.data('percentSelection', percentSelection)
+    @annotator.adder.data('relativeSelection', relativeSelection)
 
     @annotator.adder.css(adderPosition).show()
 
@@ -146,7 +146,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     marker.width(selection.width - @borderWidth * 2)
     marker.height(selection.height - @borderWidth * 2);
 
-    selection = annotation.percentSelection
+    selection = annotation.relativeSelection
 
     marker.css(
       position: 'absolute'
