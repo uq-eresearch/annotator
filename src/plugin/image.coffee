@@ -139,6 +139,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
         left: imgPosition.left + selection.x1 + @borderWidth
         top: imgPosition.top + selection.y1 + @borderWidth
         border: @borderWidth + 'px solid ' + @borderColour
+        zIndex: 1000
 #        zIndex: _n.parent().css('zIndex')
     )
     marker.width(selection.width - @borderWidth * 2)
