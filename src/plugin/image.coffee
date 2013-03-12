@@ -118,7 +118,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
 
 
   createMarker: (annotation) ->
-    marker = jQuery('<span>').appendTo(document.body)
+    marker = jQuery('<span>').appendTo(@element)
     annotation.marker = marker
     marker.data("annotation", annotation)
 
