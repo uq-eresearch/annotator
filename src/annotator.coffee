@@ -685,8 +685,14 @@ class Annotator extends Delegator
     # Remove the highlights if the edit is cancelled
     cancel = =>
       do cleanup
-      for h in annotation.highlights
-        $(h).replaceWith(h.childNodes)
+      if annotation.highlights
+        for h in annotation.highlights
+          $(h).replaceWith(h.childNodes)
+
+
+      if annotation.removeMarkers?
+        annotation.removeMarkers()
+
 
     # Don't leak handlers at the end
     cleanup = =>
