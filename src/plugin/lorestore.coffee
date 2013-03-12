@@ -218,23 +218,23 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
           }
         ]
       else if targetsel && targetsel.value && targetsel.value.match("xywh=")
-        image = jQuery("[data-id='" + target.hasSource + "']")
+        image = jQuery("[data-id='" + target.hasSource + "']").find('img')
         if image.length > 0
           image = image[0]
         selectiondata = targetsel.value.split("=")[1].split(",")
-        tempanno.selection = 
-          "x1": parseInt(selectiondata[0])
-          "y1": parseInt(selectiondata[1])
-          "x2": parseInt(selectiondata[0]) + parseInt(selectiondata[2])
-          "y2": parseInt(selectiondata[1]) + parseInt(selectiondata[3])
-          "width": parseInt(selectiondata[2])
-          "height": parseInt(selectiondata[3])
+        tempanno.relativeSelection = 
+          "x1": parseFloat(selectiondata[0])
+          "y1": parseFloat(selectiondata[1])
+          "x2": parseFloat(selectiondata[0]) + parseFloat(selectiondata[2])
+          "y2": parseFloat(selectiondata[1]) + parseFloat(selectiondata[3])
+          "width": parseFloat(selectiondata[2])
+          "height": parseFloat(selectiondata[3])
           "image": image
 
       @annotations.push tempanno
       
     if(@loads == 0)
-      console.log("annotator load annotations",@annotations)
+      console.log("annotator load annotations",data,@annotations)
       @annotator.loadAnnotations(@annotations.slice()) # Clone array
 
   # Public: Performs the same task as LoreStore.#loadAnnotations() but calls the
@@ -252,18 +252,19 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   # Returns nothing.
   loadAnnotationsFromSearch: (searchOptions) ->
     @annotations = []
-    @loads = 1;
+    @loads = 0;
     # search for annotations on embedded resources 
-    jQuery('[data-id]').each (index, element) =>
-      id = jQuery(element).data('id')
-      @loads++
-      this._apiRequest 'search', {'annotates': id}, this._onLoadAnnotations
+    jQuery(@element).find('[data-id]').andSelf().each (index, el) =>
+      id = jQuery(el).data('id')
+      if (id)
+        @loads++
+        this._apiRequest 'search', {'annotates': id}, this._onLoadAnnotations
 
     # search for annotations on this page
-    if !searchOptions
-      searchOptions = {}
-    searchOptions.annotates = document.location.href 
-    this._apiRequest 'search', searchOptions, this._onLoadAnnotations
+    #if !searchOptions
+    #  searchOptions = {}
+    #searchOptions.annotates = document.location.href 
+    #this._apiRequest 'search', searchOptions, this._onLoadAnnotations
 
 
   # Public: Dump an array of serialized annotations
@@ -431,6 +432,12 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     bodysrid = 'urn:uuid:' + this._uuid()
     targetsrid = 'urn:uuid:' + this._uuid()
     targetselid = 'urn:uuid:' + this._uuid()
+    # in AustESE we apply annotations to elements with data-id attr that identifies the underlying target object
+    # i.e. a transcription, image or entity identified by a URI
+    if @element.data('id') 
+      targeturi = @element.data('id') 
+    else 
+      targeturi = document.location.href
     # TODO: generate annotatedBy, annotatedAt
     tempanno = {
       '@context':
@@ -457,13 +464,13 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
           '@type': 'oa:SpecificResource'
           'oa:hasSource':  
              # FIXME: we need to store uri of target resource for text resources too and get this from the anno object - only use location.href as last resort
-            '@id': if annotation.selection then jQuery(annotation.selection.image).data("id") else document.location.href
+            '@id': targeturi
           'oa:hasSelector':
              '@id': targetselid
         }
       ]
     }
-    console.log("the annotation is ",annotation)
+    console.log("the annotation data is ",annotation)
     if annotation.quote
       # text annotation
       targetselector = 
@@ -475,11 +482,11 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         'lorestore:endOffset': annotation.ranges[0].endOffset
         'lorestore:startElement': annotation.ranges[0].start
         'lorestore:endElement': annotation.ranges[0].end
-    else if annotation.selection
+    else if annotation.relativeSelection
       targetselector = 
         '@id': targetselid
         '@type': 'oa:FragmentSelector'
-        'rdf:value': 'xywh=' + annotation.selection.x1 + ',' + annotation.selection.y1 + ',' + annotation.selection.width + ',' + annotation.selection.height
+        'rdf:value': 'xywh=' + annotation.relativeSelection.x1 + ',' + annotation.relativeSelection.y1 + ',' + annotation.relativeSelection.width + ',' + annotation.relativeSelection.height
 
     tempanno['@graph'].push targetselector
     data = JSON.stringify(tempanno)
