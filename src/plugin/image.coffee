@@ -70,8 +70,6 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       height: selection.height / image.height
     }
 
-    console.log(selection)
-    console.log(relativeSelection)
     @annotator.adder.data('selection', selection)
     @annotator.adder.data('relativeSelection', relativeSelection)
 
