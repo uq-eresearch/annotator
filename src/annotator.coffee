@@ -663,11 +663,7 @@ class Annotator extends Delegator
     annotation = this.createAnnotation()
 
     # Handling for image and other types of annotations
-    if @adder.data('selection')?
-      selection = @adder.data('selection')
-      @adder.removeData('selection')
-      annotation.selection = selection
-
+    if @adder.data('relativeSelection')?
       annotation.relativeSelection = @adder.data('relativeSelection')
       @adder.removeData('relativeSelection')
 

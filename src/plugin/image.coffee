@@ -9,7 +9,7 @@
 class Annotator.Plugin.Image extends Annotator.Plugin
 
   currentImage: null
-  selection: null
+  relativeSelection: null
 
   # Public: Initialises the plugin
   pluginInit: ->
@@ -52,8 +52,6 @@ class Annotator.Plugin.Image extends Annotator.Plugin
 
     # save locally
     @currentImage = image
-    @selection = selection
-    @selection.image = image
 
     imgPosition = jQuery(image).position()
     adderPosition = {
@@ -69,8 +67,8 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       width: selection.width / image.width
       height: selection.height / image.height
     }
+    relativeSelection.image = image
 
-    @annotator.adder.data('selection', selection)
     @annotator.adder.data('relativeSelection', relativeSelection)
 
     @annotator.adder.css(adderPosition).show()
@@ -96,7 +94,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
   # Public: Checks whether this plugin has special code for handling
   # particular types of annotations. eg. specific target resources/selectors
   handlesAnnotation: (annotation) ->
-    if annotation.selection?
+    if annotation.relativeSelection?
       return true
     else
       return false
@@ -127,23 +125,12 @@ class Annotator.Plugin.Image extends Annotator.Plugin
   # size changes
   updateMarkerPosition: (annotation) ->
     # if not an image annotation
-    if not annotation.selection
+    if not annotation.relativeSelection
       return
-    image = annotation.selection.image
-    selection = annotation.selection
+    image = annotation.relativeSelection.image
     marker = annotation.marker
 
     imgPosition = jQuery(image).offset()
-    marker.css(
-        position: 'absolute'
-        left: imgPosition.left + selection.x1 + @borderWidth
-        top: imgPosition.top + selection.y1 + @borderWidth
-        border: @borderWidth + 'px solid ' + @borderColour
-        zIndex: 1000
-#        zIndex: _n.parent().css('zIndex')
-    )
-    marker.width(selection.width - @borderWidth * 2)
-    marker.height(selection.height - @borderWidth * 2);
 
     selection = annotation.relativeSelection
 
