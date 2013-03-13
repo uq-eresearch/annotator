@@ -59,11 +59,20 @@ class Annotator extends Delegator
 
   selectedRanges: null
 
+  selection: null
+
   mouseIsDown: false
 
   ignoreMouseup: false
 
   viewerHideTimer: null
+
+  annotationPlugins: []
+
+  # Public: Add a handler for a different type of annotation target
+  # eg image region, semantic element
+  addAnnotationPlugin: (plugin) ->
+    @annotationPlugins.push plugin
 
   # Public: Creates an instance of the Annotator. Requires a DOM Element in
   # which to watch for annotations as well as any options.
@@ -100,6 +109,8 @@ class Annotator extends Delegator
 
     # Create adder
     this.adder = $(this.html.adder).appendTo(@wrapper).hide()
+
+    return
 
   # Wraps the children of @element in a @wrapper div. NOTE: This method will also
   # remove any script elements inside @element to prevent them re-executing.
@@ -285,7 +296,13 @@ class Annotator extends Delegator
   #
   # Returns the initialised annotation.
   setupAnnotation: (annotation) ->
-    root = @wrapper[0]
+    for plugin in @annotationPlugins
+      if plugin.handlesAnnotation(annotation)
+        return plugin.setupAnnotation(annotation)
+
+
+    root = @wrapper[0] 
+
     annotation.ranges or= @selectedRanges
 
     normedRanges = []
@@ -345,8 +362,11 @@ class Annotator extends Delegator
   #
   # Returns deleted annotation.
   deleteAnnotation: (annotation) ->
-    for h in annotation.highlights
-      $(h).replaceWith(h.childNodes)
+    if annotation.removeMarkers?
+      annotation.removeMarkers()
+    else
+      for h in annotation.highlights
+        $(h).replaceWith(h.childNodes)
 
     this.publish('annotationDeleted', [annotation])
     annotation
@@ -556,20 +576,24 @@ class Annotator extends Delegator
     if @ignoreMouseup
       return
 
-    # Get the currently selected ranges.
-    @selectedRanges = this.getSelectedRanges()
+    if @adder.data('selection')
+      @selection = @adder.data('selection')
+    else
+      # Get the currently selected ranges.
+      @selectedRanges = this.getSelectedRanges()
 
-    for range in @selectedRanges
-      container = range.commonAncestor
-      if $(container).hasClass('annotator-hl')
-        container = $(container).parents('[class^=annotator-hl]')[0]
-      return if this.isAnnotator(container)
+      for range in @selectedRanges
+        container = range.commonAncestor
+        if $(container).hasClass('annotator-hl')
+          container = $(container).parents('[class^=annotator-hl]')[0]
+        return if this.isAnnotator(container)
 
     if event and @selectedRanges.length
       @adder
         .css(util.mousePosition(event, @wrapper[0]))
         .show()
     else
+      @adder.removeData('selection')
       @adder.hide()
 
   # Public: Determines if the provided element is part of the annotator plugin.
@@ -636,10 +660,16 @@ class Annotator extends Delegator
 
     # Show a temporary highlight so the user can see what they selected
     # Also extract the quotation and serialize the ranges
-    annotation = this.setupAnnotation(this.createAnnotation())
-    $(annotation.highlights).addClass('annotator-hl-temporary')
+    annotation = this.createAnnotation()
 
-    # Subscribe to the editor events
+    # Handling for image and other types of annotations
+    if @adder.data('relativeSelection')?
+      annotation.relativeSelection = @adder.data('relativeSelection')
+      @adder.removeData('relativeSelection')
+
+
+    annotation = this.setupAnnotation(annotation)
+    $(annotation.highlights).addClass('annotator-hl-temporary')
 
     # Make the highlights permanent if the annotation is saved
     save = =>
@@ -651,14 +681,21 @@ class Annotator extends Delegator
     # Remove the highlights if the edit is cancelled
     cancel = =>
       do cleanup
-      for h in annotation.highlights
-        $(h).replaceWith(h.childNodes)
+      if annotation.highlights
+        for h in annotation.highlights
+          $(h).replaceWith(h.childNodes)
+
+
+      if annotation.removeMarkers?
+        annotation.removeMarkers()
+
 
     # Don't leak handlers at the end
     cleanup = =>
       this.unsubscribe('annotationEditorHidden', cancel)
       this.unsubscribe('annotationEditorSubmit', save)
 
+    # Subscribe to the editor events
     this.subscribe('annotationEditorHidden', cancel)
     this.subscribe('annotationEditorSubmit', save)
 

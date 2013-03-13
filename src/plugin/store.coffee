@@ -447,6 +447,12 @@ class Annotator.Plugin.Store extends Annotator.Plugin
     # Store a reference to the highlights array. We can't serialize
     # a list of HTMLElement objects.
     highlights = annotation.highlights
+    marker = annotation.marker
+    delete annotation.marker
+    if annotation.selection
+      annotation.selection.image_src = annotation.selection.image.src
+      image = annotation.selection.image
+      delete annotation.selection.image
 
     delete annotation.highlights
 
@@ -456,6 +462,11 @@ class Annotator.Plugin.Store extends Annotator.Plugin
 
     # Restore the highlights array.
     annotation.highlights = highlights if highlights
+
+    annotation.marker = marker if marker
+
+    annotation.selection.image = image
+    delete annotation.selection.image_src
 
     data
 
@@ -482,3 +493,5 @@ class Annotator.Plugin.Store extends Annotator.Plugin
     Annotator.showNotification message, Annotator.Notification.ERROR
 
     console.error Annotator._t("API request failed:") + " '#{xhr.status}'"
+
+$ = Annotator.$
