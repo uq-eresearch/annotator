@@ -23,6 +23,7 @@ class Annotator.Plugin.Image extends Annotator.Plugin
       "mousedown": this.deselect
     })
     jQuery(window).resize(this._onWindowResized)
+    jQuery(@element).find('img').resize(this._onWindowResized)
 
     # Add this plugin as a handler for annotations with an
     # 'image' target
