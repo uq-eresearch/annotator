@@ -206,6 +206,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         "id" : anno['@id']
         "text": body.chars
         "ranges": []
+        "motivation": anno.motivatedBy
       }
       if targetsel && targetsel.exact
         tempanno.quote = targetsel.exact
@@ -470,7 +471,8 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         }
       ]
     }
-    console.log("the annotation data is ",annotation)
+    if annotation.motivation
+      tempanno['@graph'][0]['oa:motivatedBy'] = {'@id': annotation.motivation}
     if annotation.quote
       # text annotation
       targetselector = 
