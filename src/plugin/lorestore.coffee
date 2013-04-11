@@ -208,14 +208,16 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         "ranges": []
         "motivation": anno.motivatedBy
       }
-      if targetsel && targetsel.exact
-        tempanno.quote = targetsel.exact
+      if targetsel && targetsel['@type']=='oa:Choice'
+        textsel = this._findById(data['@graph'], targetsel.default)
+        rangesel = this._findById(data['@graph'], targetsel.item)
+        tempanno.quote = textsel.exact
         tempanno.ranges = [
           {
-            "start": targetsel["lorestore:startElement"]
-            "startOffset": targetsel["lorestore:startOffset"]
-            "end": targetsel["lorestore:endElement"]
-            "endOffset": targetsel["lorestore:endOffset"]
+            "start": rangesel["lorestore:startElement"]
+            "startOffset": rangesel["lorestore:startOffset"]
+            "end": rangesel["lorestore:endElement"]
+            "endOffset": rangesel["lorestore:endOffset"]
           }
         ]
       else if targetsel && targetsel.value && targetsel.value.match("xywh=")
@@ -447,6 +449,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         "cnt": "http://www.w3.org/2011/content#"
         "lorestore": "http://auselit.metadata.net/lorestore/"
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        "austese": "http://austese.net/ns/oa/"
       '@graph': [
         {
           '@id': if annotation.id then annotation.id else 'http://example.org/dummy'
@@ -477,13 +480,19 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       # text annotation
       targetselector = 
         '@id': targetselid
-        '@type': ['oa:TextPositionSelector','oa:TextQuoteSelector']
-        'oa:exact': annotation.quote
-        # store a direct copy of the annotator text range data for now
-        'lorestore:startOffset': annotation.ranges[0].startOffset
-        'lorestore:endOffset': annotation.ranges[0].endOffset
-        'lorestore:startElement': annotation.ranges[0].start
-        'lorestore:endElement': annotation.ranges[0].end
+        '@type': 'oa:Choice'
+        'oa:item': 
+          '@id': 'urn:uuid:' + this._uuid()
+          '@type': 'austese:RangeSelector'
+          # store a direct copy of the annotator text range data for now
+          'lorestore:startOffset': annotation.ranges[0].startOffset
+          'lorestore:endOffset': annotation.ranges[0].endOffset
+          'lorestore:startElement': annotation.ranges[0].start
+          'lorestore:endElement': annotation.ranges[0].end
+        'oa:default': 
+          '@type': 'oa:TextQuoteSelector'
+          '@id': 'urn:uuid:' + this._uuid()
+          'oa:exact': annotation.quote
     else if annotation.relativeSelection
       targetselector = 
         '@id': targetselid
