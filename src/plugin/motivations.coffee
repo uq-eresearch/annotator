@@ -55,13 +55,13 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
       submit: this.setAnnotationMotivations
     })
     # replace default input created by editor with a select field
-    id = jQuery(@field).find('input').attr('id')
+    id = Annotator.$(@field).find('input').attr('id')
     select = '<li class="annotator-item"><select style="width:100%"><option value="">(Uncategorised)</option>'
     for m in @options.motivations
       select += '<option value="' + m.value + '">' + m.label + '</option>'
     select += '</select></li>'
-    newfield = jQuery(select)
-    jQuery(@field).replaceWith(newfield)
+    newfield = Annotator.$(select)
+    Annotator.$(@field).replaceWith(newfield)
     @field=newfield[0]
 
     
@@ -70,7 +70,7 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
       annoPlugin: this
     })
 
-    @input = jQuery(@field).find('select')
+    @input = Annotator.$(@field).find('select')
 
 
   # Annotator.Editor callback function. Updates the @input field with the
@@ -100,7 +100,7 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
   #
   # Returns nothing.
   updateViewer: (field, annotation) ->
-    field = jQuery(field)
+    field = Annotator.$(field)
     if annotation.motivation 
       displayValue = annotation.motivation
       for m in this.annoPlugin.options.motivations
