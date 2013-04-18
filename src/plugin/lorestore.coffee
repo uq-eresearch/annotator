@@ -212,6 +212,8 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         creator = this._findById(data['@graph'], anno.annotatedBy)
         if creator
           tempanno.creator = creator.name
+      if anno.annotatedAt
+        tempanno.created = anno.annotatedAt['@value']
       if targetsel && targetsel['@type']=='oa:Choice'
         textsel = this._findById(data['@graph'], targetsel.default)
         rangesel = this._findById(data['@graph'], targetsel.item)

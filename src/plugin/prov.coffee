@@ -1,4 +1,5 @@
 # Public: Prov plugin displays provenance properties for annotation
+# requires jQuery timeago http://timeago.yarp.com/
 class Annotator.Plugin.Prov extends Annotator.Plugin
   # Public: Initialises the plugin and adds custom fields to the
   # annotator viewer. The plugin also checks if the annotator is
@@ -19,8 +20,10 @@ class Annotator.Plugin.Prov extends Annotator.Plugin
   # Returns nothing.
   updateViewer: (field, annotation) ->
     field = Annotator.$(field)
-    console.log("update viewer", annotation, field)
-    if annotation.creator || annotation.annotatedAt
-      field.addClass('annotator-prov').html('by ' + Annotator.$.escape(annotation.creator))
+    if annotation.creator || annotation.created
+      field.addClass('annotator-prov').html(
+        (if annotation.creator then 'by ' + Annotator.$.escape(annotation.creator) + ", " else "") + 
+        (if annotation.created then jQuery.timeago(new Date(Annotator.$.escape(annotation.created))) else "")
+      )
     else
       field.remove()
