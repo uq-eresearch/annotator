@@ -4,11 +4,11 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
     motivations: 
       [
         {
-          value: "http://www.w3.org/ns/oa#commenting"
+          value: "oa:commenting"
           label: "Comment"
         },
         {
-          value: "http://www.w3.org/ns/oa#questioning"
+          value: "oa:questioning"
           label: "Question"
         },
         {
