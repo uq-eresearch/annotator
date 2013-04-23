@@ -12,31 +12,31 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
           label: "Question"
         },
         {
-          value: "http://austese.net/ns/oa/TextualNote" 
+          value: "austese:TextualNote" 
           label: "Textual Note"
         },
         {
-          value: "http://austese.net/ns/oa/ExplanatoryNote" 
+          value: "austese:ExplanatoryNote" 
           label: "Explanatory Note"
         },
         {
-          value: "http://austese.net/ns/oa/HistoricalNote" 
+          value: "austese:HistoricalNote" 
           label: "Historical Note"
         },
         {
-          value: "http://austese.net/ns/oa/BiographicalNote" 
+          value: "austese:BiographicalNote" 
           label: "Biographical Note"
         },
         {
-          value: "http://austese.net/ns/oa/Glossary" 
+          value: "austese:Glossary" 
           label: "Glossary"
         },
         {
-          value: "http://austese.net/ns/oa/ClassicalAllusion" 
+          value: "austese:ClassicalAllusion" 
           label: "Classical Allusion"
         },
         {
-          value: "http://austese.net/ns/oa/BiblicalAllusion" 
+          value: "austese:BiblicalAllusion" 
           label: "Biblical Allusion"
         }
       ]
