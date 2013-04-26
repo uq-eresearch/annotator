@@ -215,17 +215,38 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       if anno.annotatedAt
         tempanno.created = anno.annotatedAt['@value']
       if targetsel && targetsel['@type']=='oa:Choice'
-        textsel = this._findById(data['@graph'], targetsel.default)
-        rangesel = this._findById(data['@graph'], targetsel.item)
-        tempanno.quote = textsel.exact
-        tempanno.ranges = [
-          {
-            "start": rangesel["lorestore:startElement"]
-            "startOffset": rangesel["lorestore:startOffset"]
-            "end": rangesel["lorestore:endElement"]
-            "endOffset": rangesel["lorestore:endOffset"]
-          }
-        ]
+        textQuoteSelector = this._findById(data['@graph'], targetsel.default)
+        tempanno.quote = textQuoteSelector.exact
+        tempanno.prefix = textQuoteSelector.prefix
+        tempanno.suffix = textQuoteSelector.suffix
+
+        processSelector = (sel) ->
+          switch sel['@type']
+            when 'austese:RangeSelector'
+              tempanno.ranges = [
+                {
+                  "start": sel["lorestore:startElement"]
+                  "startOffset": sel["lorestore:startOffset"]
+                  "end": sel["lorestore:endElement"]
+                  "endOffset": sel["lorestore:endOffset"]
+                }
+              ]
+            when 'oa:TextPositionSelector'
+              tempanno.startOffset = sel['start']
+              tempanno.endOffset = sel['end']
+              
+        if typeof targetsel.item == 'string'
+          selector = this._findById(data['@graph'], targetsel.item)
+          processSelector(selector)
+
+        else if typeof targetsel.item =='object'
+          selectors = (this._findById(data['@graph'], id) for id in targetsel.item)
+          processSelector(selector) for selector in selectors
+
+
+
+
+
       else if targetsel && targetsel.value && targetsel.value.match("xywh=")
         image = jQuery("[data-id='" + target.hasSource + "']").find('img')
         if image.length > 0
@@ -487,19 +508,30 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       targetselector = 
         '@id': targetselid
         '@type': 'oa:Choice'
-        'oa:item': 
-          '@id': 'urn:uuid:' + this._uuid()
-          '@type': 'austese:RangeSelector'
-          # store a direct copy of the annotator text range data for now
-          'lorestore:startOffset': annotation.ranges[0].startOffset
-          'lorestore:endOffset': annotation.ranges[0].endOffset
-          'lorestore:startElement': annotation.ranges[0].start
-          'lorestore:endElement': annotation.ranges[0].end
+        'oa:item': [
+          {
+            '@id': 'urn:uuid:' + this._uuid()
+            '@type': 'austese:RangeSelector'
+            # store a direct copy of the annotator text range data for now
+            'lorestore:startOffset': annotation.ranges[0].startOffset
+            'lorestore:endOffset': annotation.ranges[0].endOffset
+            'lorestore:startElement': annotation.ranges[0].start
+            'lorestore:endElement': annotation.ranges[0].end
+          },{
+            '@id': 'urn:uuid:' + this._uuid()
+            '@type': 'oa:TextPositionSelector'
+            'oa:start': annotation.startOffset
+            'oa:end': annotation.endOffset
+          }
+        ]
         'oa:default': 
           '@type': 'oa:TextQuoteSelector'
           '@id': 'urn:uuid:' + this._uuid()
           'oa:exact': annotation.quote
+          'oa:prefix': annotation.prefix
+          'oa:suffix': annotation.suffix
     else if annotation.relativeSelection
+      # image annotation
       targetselector = 
         '@id': targetselid
         '@type': 'oa:FragmentSelector'
