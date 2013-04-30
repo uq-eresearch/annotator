@@ -283,18 +283,19 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   loadAnnotationsFromSearch: (searchOptions) ->
     @annotations = []
     @loads = 0;
-    # search for annotations on embedded resources 
+    # search for annotations on embedded resources, if there is a data-id attribute use that
     jQuery(@element).find('[data-id]').andSelf().each (index, el) =>
       id = jQuery(el).data('id')
       if (id)
         @loads++
         this._apiRequest 'search', {'annotates': id}, this._onLoadAnnotations
 
-    # search for annotations on this page
-    #if !searchOptions
-    #  searchOptions = {}
-    #searchOptions.annotates = document.location.href 
-    #this._apiRequest 'search', searchOptions, this._onLoadAnnotations
+    # otherwise, use search options to search using annotates parameter (or uri for compatibility with Annotator store)
+    if !searchOptions
+      searchOptions = {}
+    if !searchOptions.annotates
+      searchOptions.annotates = searchOptions.uri || document.location.href 
+    this._apiRequest 'search', searchOptions, this._onLoadAnnotations
 
 
   # Public: Dump an array of serialized annotations
