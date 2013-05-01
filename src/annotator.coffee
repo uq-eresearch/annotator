@@ -108,7 +108,7 @@ class Annotator extends Delegator
     this._setupDynamicStyle()
 
     # Create adder
-    this.adder = $(this.html.adder).appendTo(@wrapper).hide()
+    this.adder = $(this.html.adder).appendTo(document.body).hide()
 
     return
 
@@ -146,7 +146,7 @@ class Annotator extends Delegator
             $(field).html("<i>#{_t 'No Comment'}</i>")
           this.publish('annotationViewerTextField', [field, annotation])
       })
-      .element.appendTo(@wrapper).bind({
+      .element.appendTo(document.body).bind({
         "mouseover": this.clearViewerHideTimer
         "mouseout":  this.startViewerHideTimer
       })
@@ -170,7 +170,7 @@ class Annotator extends Delegator
           annotation.text = $(field).find('textarea').val()
       })
 
-    @editor.element.appendTo(@wrapper)
+    @editor.element.appendTo(document.body)
     this
 
   # Sets up the selection event listeners to watch mouse actions on the document.
@@ -590,7 +590,7 @@ class Annotator extends Delegator
 
     if event and @selectedRanges.length
       @adder
-        .css(util.mousePosition(event, @wrapper[0]))
+        .css(util.mousePosition(event, document.body))
         .show()
     else
       @adder.removeData('selection')
@@ -632,7 +632,8 @@ class Annotator extends Delegator
       .andSelf()
       .map -> return $(this).data("annotation")
 
-    this.showViewer($.makeArray(annotations), util.mousePosition(event, @wrapper[0]))
+    this.showViewer($.makeArray(annotations), util.mousePosition(event, document.body))
+
 
   # Annotator#element callback. Sets @ignoreMouseup to true to prevent
   # the annotation selection events firing when the adder is clicked.

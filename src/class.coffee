@@ -29,6 +29,7 @@ class Delegator
   constructor: (element, options) ->
     @options = $.extend(true, {}, @options, options)
     @element = $(element)
+    @document = $(document.body)
 
     this.on = this.subscribe
     this.addEvents()
@@ -90,7 +91,7 @@ class Delegator
     bindTo = @element if isBlankSelector
 
     if typeof bindTo is 'string'
-      @element.delegate bindTo, event, closure
+      @document.on event, bindTo, closure
     else
       if this.isCustomEvent(event)
         this.subscribe event, closure
