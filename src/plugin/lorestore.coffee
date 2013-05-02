@@ -264,7 +264,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       @annotations.push tempanno
       
     if(@loads == 0)
-      console.log("annotator load annotations",data,@annotations)
+      #console.log("annotator load annotations",data,@annotations)
       @annotator.loadAnnotations(@annotations.slice()) # Clone array
 
   # Public: Performs the same task as LoreStore.#loadAnnotations() but calls the
@@ -542,7 +542,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
 
     tempanno['@graph'].push targetselector
     data = JSON.stringify(tempanno)
-    console.log("dataFor",data)
+    #console.log("dataFor",data)
     data
 
   # jQuery.ajax() callback. Displays an error notification to the user if
