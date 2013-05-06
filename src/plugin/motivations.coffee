@@ -4,40 +4,52 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
     motivations: 
       [
         {
+          value: "oa:bookmarking"
+          label: "Bookmarking"
+        },
+        {
+          value: "oa:classifying"
+          label: "Classifying"
+        },
+        {
           value: "oa:commenting"
-          label: "Comment"
+          label: "Commenting"
+        },
+        {
+          value: "oa:describing",
+          label: "Describing"
+        },
+        {
+          value: "oa:editing",
+          label: "Editing"
+        },
+        {
+          value: "oa:highlighting"
+          label: "Highlighting"
+        },
+        {
+          value: "oa:identifying"
+          label: "Identifying"
+        },
+        {
+          value: "oa:linking",
+          label: "Linking"
+        },
+        {
+          value: "oa:moderating"
+          label: "Moderating"
         },
         {
           value: "oa:questioning"
           label: "Question"
         },
         {
-          value: "austese:TextualNote" 
-          label: "Textual Note"
+          value: "oa:replying"
+          label: "Replying"
         },
         {
-          value: "austese:ExplanatoryNote" 
-          label: "Explanatory Note"
-        },
-        {
-          value: "austese:HistoricalNote" 
-          label: "Historical Note"
-        },
-        {
-          value: "austese:BiographicalNote" 
-          label: "Biographical Note"
-        },
-        {
-          value: "austese:Glossary" 
-          label: "Glossary"
-        },
-        {
-          value: "austese:ClassicalAllusion" 
-          label: "Classical Allusion"
-        },
-        {
-          value: "austese:BiblicalAllusion" 
-          label: "Biblical Allusion"
+          value: "oa:tagging"
+          label: "Tagging"
         }
       ]
   # The field element added to the Annotator.Editor wrapped in jQuery. Cached to
