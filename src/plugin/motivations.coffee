@@ -41,7 +41,7 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
         },
         {
           value: "oa:questioning"
-          label: "Question"
+          label: "Questioning"
         },
         {
           value: "oa:replying"
