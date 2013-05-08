@@ -113,6 +113,13 @@ class Annotator extends Delegator
 
     return
 
+  destroy: ->
+    @editor.element.remove()
+    @viewer.element.remove()
+    # remove adder
+    @element.removeData('annotator')
+    this.publish('destroy')
+
   # Wraps the children of @element in a @wrapper div. NOTE: This method will also
   # remove any script elements inside @element to prevent them re-executing.
   #
@@ -789,6 +796,17 @@ Annotator.noConflict = ->
 
 # Create global access for Annotator
 $.plugin 'annotator', Annotator
+
+# Add global function for removing annotator
+jQuery.fn.removeAnnotator = ->
+  this.each ->
+    instance = $.data(this, 'annotator')
+
+    if instance
+      instance.destroy()
+
+      $.removeData(this, 'annotator')
+  this
 
 # Export Annotator object.
 this.Annotator = Annotator;
