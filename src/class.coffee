@@ -91,7 +91,10 @@ class Delegator
     bindTo = @element if isBlankSelector
 
     if typeof bindTo is 'string'
-      @document.on event, bindTo, closure
+      if @options.bindToDocument?
+        @document.on event, bindTo, closure
+      else
+        @element.on event, bindTo, closure
     else
       if this.isCustomEvent(event)
         this.subscribe event, closure
