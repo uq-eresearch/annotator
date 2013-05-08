@@ -169,6 +169,7 @@ describe 'Range', ->
           setStartBefore: jasmine.createSpy('Range#setStartBefore()')
           setEndAfter: jasmine.createSpy('Range#setEndAfter()')
 
+        originalCreateRange = document.createRange
         document.createRange = jasmine.createSpy('document.createRange()')
         document.createRange.andReturn(mockRange)
         r.toRange()
@@ -178,3 +179,5 @@ describe 'Range', ->
         expect(mockRange.setStartBefore).toHaveBeenCalledWith(r.start)
         expect(mockRange.setEndAfter).toHaveBeenCalled()
         expect(mockRange.setEndAfter).toHaveBeenCalledWith(r.end)
+
+        document.createRange = originalCreateRange
