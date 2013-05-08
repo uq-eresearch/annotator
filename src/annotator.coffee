@@ -108,7 +108,8 @@ class Annotator extends Delegator
     this._setupDynamicStyle()
 
     # Create adder
-    this.adder = $(this.html.adder).appendTo(document.body).hide()
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
+    this.adder = $(this.html.adder).appendTo(appendTo).hide()
 
     return
 
@@ -134,6 +135,7 @@ class Annotator extends Delegator
   #
   # Returns itself to allow chaining.
   _setupViewer: ->
+    appendTo = if @options.bindToDocument? then document.body else @wrapper
     @viewer = new Annotator.Viewer(readOnly: @options.readOnly)
     @viewer.hide()
       .on("edit", this.onEditAnnotation)
@@ -146,7 +148,7 @@ class Annotator extends Delegator
             $(field).html("<i>#{_t 'No Comment'}</i>")
           this.publish('annotationViewerTextField', [field, annotation])
       })
-      .element.appendTo(document.body).bind({
+      .element.appendTo(appendTo).bind({
         "mouseover": this.clearViewerHideTimer
         "mouseout":  this.startViewerHideTimer
       })
@@ -170,7 +172,8 @@ class Annotator extends Delegator
           annotation.text = $(field).find('textarea').val()
       })
 
-    @editor.element.appendTo(document.body)
+    appendTo = if @options.bindToDocument? then document.body else @wrapper
+    @editor.element.appendTo(appendTo)
     this
 
   # Sets up the selection event listeners to watch mouse actions on the document.
@@ -588,9 +591,10 @@ class Annotator extends Delegator
           container = $(container).parents('[class^=annotator-hl]')[0]
         return if this.isAnnotator(container)
 
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
     if event and @selectedRanges.length
       @adder
-        .css(util.mousePosition(event, document.body))
+        .css(util.mousePosition(event, appendTo))
         .show()
     else
       @adder.removeData('selection')
@@ -632,7 +636,8 @@ class Annotator extends Delegator
       .andSelf()
       .map -> return $(this).data("annotation")
 
-    this.showViewer($.makeArray(annotations), util.mousePosition(event, document.body))
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
+    this.showViewer($.makeArray(annotations), util.mousePosition(event, appendTo))
 
 
   # Annotator#element callback. Sets @ignoreMouseup to true to prevent
