@@ -37,10 +37,10 @@ util =
 _Annotator = this.Annotator
 
 class Annotator extends Delegator
+
   # Events to be bound on Annotator#element.
   events:
-    ".annotator-adder button click":     "onAdderClick"
-    ".annotator-adder button mousedown": "onAdderMousedown"
+    # ".annotator-adder button click":     "onAdderClick"
     ".annotator-hl mouseover":           "onHighlightMouseover"
     ".annotator-hl mouseout":            "startViewerHideTimer"
 
@@ -110,6 +110,10 @@ class Annotator extends Delegator
     # Create adder
     appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
     this.adder = $(this.html.adder).appendTo(appendTo).hide()
+    this.adder.on("click", "button",
+      => this.onAdderClick.apply(this, arguments))
+    this.adder.on("mousedown", "button",
+      => this.onAdderMousedown.apply(this, arguments))
 
     return
 
