@@ -3,12 +3,22 @@
 describe 'Annotator.Plugin.CharRangeSelection', ->
   plugin = null
   annotation = null
+  range = null
 
   beforeEach ->
-    el = $('<p>Some text</p>')[0]
+    el = $('<p>Some text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate commodo lacus et hendrerit. Sed eu libero eros. Phasellus convallis scelerisque arcu pellentesque vulputate. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Sed molestie vestibulum consequat. Quisque ut luctus erat. Proin ornare scelerisque dignissim. Nulla erat ante, dictum a ornare non, scelerisque sed justo. Quisque laoreet ullamcorper elementum. Morbi vitae dignissim magna. Vivamus sit amet volutpat ipsum. Maecenas vestibulum tellus vel lectus molestie ullamcorper. Aenean porttitor justo id est molestie ullamcorper convallis nulla laoreet. Aenean pharetra ullamcorper diam et pretium. Vestibulum non varius nunc.</p>')[0]
     plugin = new Annotator.Plugin.CharRangeSelection(el)
+    plugin.annotator = 
+      wrapper: [el]
+    range = document.createRange()
+    range.setStart(el.firstChild, 5)
+    range.setEnd(el.firstChild, 9)
     annotation =
+      text: 'text'
       quote: 'text'
+      ranges: [
+        new Range.BrowserRange(range)
+      ]
 
   describe 'events', ->
 
@@ -16,18 +26,22 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
   describe 'annotationCreated', ->
     beforeEach ->
       plugin.annotationCreated(annotation)
+      expect(range.toString()).toEqual('text')
+
 
     it 'should add offset', ->
-      expect(annotation.startOffset).toBeDefined()
+      # expect(annotation.startOffset).toBeDefined()
       expect(annotation.startOffset).toBe(4)
-      expect(annotation.endOffset).toBeDefined()
+      # expect(annotation.endOffset).toBeDefined()
       expect(annotation.endOffset).toBe(8)
 
     it 'should add prefix/suffix fields to the annotation', ->
       expect(annotation.prefix).toBeDefined()
+      expect(annotation.prefix.length).toBeLessThan(51)
       expect(annotation.prefix).toEqual('Some')
       expect(annotation.suffix).toBeDefined()
-      expect(annotation.suffix).toEqual('')
+      expect(annotation.suffix.length).toEqual(50)
+      expect(annotation.suffix).toEqual('.Loremipsumdolorsitamet,consecteturadipiscingelit.')
 
 
   describe 'annotationsLoaded', ->
@@ -38,6 +52,7 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
         startOffset: 4
         endOffset: 8
         quote: 'text'
+        text: 'text'
       annotations.push(annotation)
 
       annotator = {}
@@ -60,7 +75,10 @@ describe 'CharRange', ->
   node1 = null
   node2 = null
   node3 = null
+  nodeTextRepeat1 = null
+  nodeTextRepeat2 = null
   textNode1 = null
+  selectSpan = null
 
   beforeEach ->
     addFixture('charrangeselection')
@@ -69,6 +87,13 @@ describe 'CharRange', ->
     textNode1 = node1.firstChild
     node2 = $('#text2')[0]
     node3 = $('#text3')[0]
+    nodeTextRepeat1 = $('#textRepeat1')[0]
+    nodeTextRepeat2 = $('#textRepeat2')[0]
+    selectSpan = $('#selectSpan')[0]
+
+  afterEach ->
+    clearFixtures()
+
 
   it 'can return the offsets from a range', ->
     range = document.createRange()
@@ -79,7 +104,9 @@ describe 'CharRange', ->
     range.setStart(textNode1, 3)
     range.setEnd(textNode1, 7)
 
-    offsets = charRange.offsetsFromNode(node1, range)
+    expect(range.toString()).toEqual('e si')
+
+    offsets = charRange.offsetsFromDomRange(node1, range)
     expect(offsets.start).toEqual(3)
     expect(offsets.end).toEqual(6) # skipped ' '
 
@@ -97,12 +124,11 @@ describe 'CharRange', ->
     range.setStart(textNode1, 3)
     range.setEnd(textNode1, 7)
 
-    offsets = charRange.offsetsFromNode(node1, range)
+    offsets = charRange.offsetsFromDomRange(node1, range)
 
     newRange = charRange.rangeFromCharOffsets(node1, offsets)
 
     expect(range.toString()).toEqual(newRange.toString())
-
 
 
   it 'can return a range based on char offsets', ->
@@ -161,7 +187,57 @@ describe 'CharRange', ->
     expect(range2.toString()).toEqual(text)
 
 
+  it 'can handle selections of text that are repeated later', ->
+    # This is some text that. This is some text.
+    range = document.createRange()
 
+    range.setStart(nodeTextRepeat1.firstChild, 0)
+    range.setEnd(nodeTextRepeat1.firstChild, 4)
+
+    expect(range.toString()).toEqual('This')
+
+    offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
+    expect(offsets.start).toEqual(0)
+    expect(offsets.end).toEqual(4) # skipped ' '
+
+  it 'can select second occurance of repeated text', ->
+    range = document.createRange()
+    range.setStart(nodeTextRepeat1.firstChild, 24)
+    range.setEnd(nodeTextRepeat1.firstChild, 28)
+    expect(range.toString()).toEqual('This')
+
+    offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
+    expect(offsets.start).toEqual(19)
+    expect(offsets.end).toEqual(23) # skipped ' '
+
+  it 'can select second occurance of repeated text from a different complex element', ->
+    range = document.createRange()
+    range.setStart(nodeTextRepeat1.firstChild, 24)
+    range.setEnd(nodeTextRepeat1.firstChild, 28)
+    expect(range.toString() + 1).toEqual('This1')
+
+    offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
+    expect(offsets.start).toEqual(19)
+    expect(offsets.end).toEqual(23) # skipped ' '
+
+    range = charRange.rangeFromCharOffsets(nodeTextRepeat2, offsets)
+    expect(range.toString() + 2).toEqual('This2')
+    # expect(range.startOffset).toEqual(4)
+    # expect(range.endOffset).toEqual(1)
+
+  it 'can select text perfectly surrounded by a <span>', ->
+    range = document.createRange()
+    range.setStartBefore($('#selectSpan span')[0])
+    range.setEndAfter($('#selectSpan span')[0])
+
+    expect(range.toString()).toEqual('some')
+    
+    offsets = charRange.offsetsFromDomRange(selectSpan, range)
+    expect(offsets.start).toEqual(6)
+    expect(offsets.end).toEqual(10) # skipped ' '
+
+    newRange = charRange.rangeFromCharOffsets(selectSpan, offsets)
+    expect(newRange.toString() + 2).toEqual('some2')    
 
 
 

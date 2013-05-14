@@ -27,50 +27,65 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
     content = @element.text()
     content = cleanText(content)
 
+    # range = @annotator.selectedRanges[0].toRange()
+    range = annotation.ranges[0].normalize(@annotator.wrapper[0])
+
+    charRange = new CharRange()
+    offset = charRange.offsetsFromNormalizedRange(@annotator.wrapper[0], range)
+
     # Find the annotated text inside the content string
     selectedText = cleanText(annotation.quote)
 
-    offset = content.indexOf(selectedText)
-    lastOffset = content.lastIndexOf(selectedText)
+    prefixStart = if offset.start - extraChars < 0 then 0 else offset.start - extraChars
+    suffixEnd = if offset.end + extraChars > content.length then content.length else offset.end + extraChars
+    annotation.prefix = content.slice(prefixStart, offset.start)
+    annotation.suffix = content.slice(offset.end, suffixEnd)
 
-    if offset != lastOffset
-      alert("PANIC - multiple positions of text found")
-
-    annotation.prefix = content.slice(offset - extraChars, offset)
-    annotation.suffix = content.slice(offset + selectedText.length, offset + selectedText.length + extraChars)
-
-    annotation.startOffset = offset
-    annotation.endOffset = offset + selectedText.length
+    annotation.startOffset = offset.start
+    annotation.endOffset = offset.end
 
     annotation
 
 
-
+  # Find any annotations that haven't been placed, or that have been placed in correctly
+  # and use the stored character offsets to place them
   annotationsLoaded: (annotations) ->
-    # Create annotation.highlights based on character range
-    head = @element[0]
-
-    TEXT_NODE = 3
-
     for annotation in annotations
       if !annotation.ranges? || annotation.ranges.length == 0
 
-        offsets = 
-          start: annotation.startOffset
-          end: annotation.endOffset
-        charRange = new CharRange()
-        range = charRange.rangeFromCharOffsets(head, offsets)
+        this._loadAnnotation(annotation)
 
-        selectedText = range.toString().trim()
-        if annotation.quote != selectedText
-          console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.quote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
+      else if annotation.quote != annotation.text
+        # delete existing
+        if annotation.highlights?
+          for h in annotation.highlights
+            $(h).replaceWith(h.childNodes)
+        
+        this._loadAnnotation(annotation)
+
+    annotations
+
+  # Load the annotation into the page using the character offsets
+  _loadAnnotation: (annotation) ->
+    head = @element[0]
+    TEXT_NODE = 3
+
+    offsets = 
+      start: annotation.startOffset
+      end: annotation.endOffset
+
+    range = new CharRange().rangeFromCharOffsets(head, offsets)
+
+    selectedText = range.toString().trim()
+    if annotation.text != selectedText
+      console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.text + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
 
 #        console.log("findRange", {range: range, text: range.toString()})
-        annotation.ranges = []
-        annotation.ranges.push(range)
+    annotation.ranges = []
+    annotation.ranges.push(range)
 
-        @annotator.setupAnnotation(annotation)
-    annotations
+    @annotator.setupAnnotation(annotation)
+
 
 
 # Helper functions for selecting text by character offset, with different
@@ -89,17 +104,34 @@ class CharRange
     if nodeOffset != lastOffset
       console.log("PANIC - multiple positions of text found")
 
-
-
     offsets.start = calcCharOffset(node.textContent, nodeOffset)
     offsets.end = calcCharOffset(node.textContent, nodeOffset + text.length)
 
     offsets
 
 
+
   # Returns an object with
-  offsetsFromNode: (node, range) ->
-    return this.offsetsOfString(node, range.toString())
+  offsetsFromDomRange: (node, range) ->
+    range = new Annotator.Range.BrowserRange(range).normalize(node)
+    this.offsetsFromNormalizedRange(node, range)
+    
+
+  offsetsFromNormalizedRange: (node, range) ->
+    offsets = {}
+    charCount = 0
+    findOffsets = (currNode) ->
+      if currNode.nodeType == TEXT_NODE
+        if currNode == range.start
+          offsets.start = charCount
+        if currNode == range.end
+          offsets.end = charCount + cleanText(currNode.textContent).length
+        charCount += cleanText(currNode.textContent).length
+
+    walkDom(node, findOffsets)
+
+    offsets
+
 
 
   rangeFromCharOffsets: (node, offsets) ->
