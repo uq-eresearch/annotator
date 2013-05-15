@@ -118,9 +118,13 @@ class Annotator extends Delegator
     return
 
   destroy: ->
+    super
+    for name, plugin of @plugins
+      plugin.destroy()
+
     @editor.element.remove()
     @viewer.element.remove()
-    # remove adder
+    @adder.remove()
     @element.removeData('annotator')
     this.publish('destroy')
 
