@@ -51,17 +51,18 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
   # and use the stored character offsets to place them
   annotationsLoaded: (annotations) ->
     for annotation in annotations
-      if (!annotation.ranges? || annotation.ranges.length == 0) and annotation.startOffset?
+      if annotation.startOffset?
+        if !annotation.ranges? || annotation.ranges.length == 0
 
-        this._loadAnnotation(annotation)
+          this._loadAnnotation(annotation)
 
-      else if annotation.quote != annotation.text
-        # delete existing
-        if annotation.highlights?
-          for h in annotation.highlights
-            $(h).replaceWith(h.childNodes)
-        
-        this._loadAnnotation(annotation)
+        else if annotation.quote != annotation.text
+          # delete existing
+          if annotation.highlights?
+            for h in annotation.highlights
+              $(h).replaceWith(h.childNodes)
+          
+          this._loadAnnotation(annotation)
 
     annotations
 
