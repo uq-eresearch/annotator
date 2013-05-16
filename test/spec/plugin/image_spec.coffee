@@ -28,7 +28,7 @@ describe "Annotator.Plugin.Image", ->
 
     it "should return true for an image annotation", ->
       annotation = {}
-      annotation.selection = ''
+      annotation.relativeSelection = ''
       expect(plugin.handlesAnnotation(annotation)).toBe(true)
 
   describe "createMarker", ->

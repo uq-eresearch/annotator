@@ -37,10 +37,10 @@ util =
 _Annotator = this.Annotator
 
 class Annotator extends Delegator
+
   # Events to be bound on Annotator#element.
   events:
-    ".annotator-adder button click":     "onAdderClick"
-    ".annotator-adder button mousedown": "onAdderMousedown"
+    # ".annotator-adder button click":     "onAdderClick"
     ".annotator-hl mouseover":           "onHighlightMouseover"
     ".annotator-hl mouseout":            "startViewerHideTimer"
 
@@ -108,9 +108,25 @@ class Annotator extends Delegator
     this._setupDynamicStyle()
 
     # Create adder
-    this.adder = $(this.html.adder).appendTo(@wrapper).hide()
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
+    this.adder = $(this.html.adder).appendTo(appendTo).hide()
+    this.adder.on("click", "button",
+      => this.onAdderClick.apply(this, arguments))
+    this.adder.on("mousedown", "button",
+      => this.onAdderMousedown.apply(this, arguments))
 
     return
+
+  destroy: ->
+    super
+    for name, plugin of @plugins
+      plugin.destroy()
+
+    @editor.element.remove()
+    @viewer.element.remove()
+    @adder.remove()
+    @element.removeData('annotator')
+    this.publish('destroy')
 
   # Wraps the children of @element in a @wrapper div. NOTE: This method will also
   # remove any script elements inside @element to prevent them re-executing.
@@ -134,6 +150,7 @@ class Annotator extends Delegator
   #
   # Returns itself to allow chaining.
   _setupViewer: ->
+    appendTo = if @options.bindToDocument? then document.body else @wrapper
     @viewer = new Annotator.Viewer(readOnly: @options.readOnly)
     @viewer.hide()
       .on("edit", this.onEditAnnotation)
@@ -146,7 +163,7 @@ class Annotator extends Delegator
             $(field).html("<i>#{_t 'No Comment'}</i>")
           this.publish('annotationViewerTextField', [field, annotation])
       })
-      .element.appendTo(@wrapper).bind({
+      .element.appendTo(appendTo).bind({
         "mouseover": this.clearViewerHideTimer
         "mouseout":  this.startViewerHideTimer
       })
@@ -170,7 +187,8 @@ class Annotator extends Delegator
           annotation.text = $(field).find('textarea').val()
       })
 
-    @editor.element.appendTo(@wrapper)
+    appendTo = if @options.bindToDocument? then document.body else @wrapper
+    @editor.element.appendTo(appendTo)
     this
 
   # Sets up the selection event listeners to watch mouse actions on the document.
@@ -588,9 +606,10 @@ class Annotator extends Delegator
           container = $(container).parents('[class^=annotator-hl]')[0]
         return if this.isAnnotator(container)
 
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
     if event and @selectedRanges.length
       @adder
-        .css(util.mousePosition(event, @wrapper[0]))
+        .css(util.mousePosition(event, appendTo))
         .show()
     else
       @adder.removeData('selection')
@@ -632,7 +651,9 @@ class Annotator extends Delegator
       .andSelf()
       .map -> return $(this).data("annotation")
 
-    this.showViewer($.makeArray(annotations), util.mousePosition(event, @wrapper[0]))
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
+    this.showViewer($.makeArray(annotations), util.mousePosition(event, appendTo))
+
 
   # Annotator#element callback. Sets @ignoreMouseup to true to prevent
   # the annotation selection events firing when the adder is clicked.
@@ -783,6 +804,17 @@ Annotator.noConflict = ->
 
 # Create global access for Annotator
 $.plugin 'annotator', Annotator
+
+# Add global function for removing annotator
+jQuery.fn.removeAnnotator = ->
+  this.each ->
+    instance = $.data(this, 'annotator')
+
+    if instance
+      instance.destroy()
+
+      $.removeData(this, 'annotator')
+  this
 
 # Export Annotator object.
 this.Annotator = Annotator;

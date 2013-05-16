@@ -54,7 +54,8 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     # save locally
     @currentImage = image
 
-    imgPosition = jQuery(image).position()
+    imgPosition = jQuery(image).offset() # Was using .position(), but it is relative to container
+    # and the image no longer has the same container as the adder/editor
     adderPosition = {
       top: imgPosition.top + selection.y1 - 5,
       left: imgPosition.left + selection.x2 + 5

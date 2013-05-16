@@ -465,8 +465,9 @@ class Annotator.Plugin.Store extends Annotator.Plugin
 
     annotation.marker = marker if marker
 
-    annotation.selection.image = image
-    delete annotation.selection.image_src
+    if image
+      annotation.selection.image = image
+      delete annotation.selection.image_src
 
     data
 

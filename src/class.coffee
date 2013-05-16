@@ -29,9 +29,13 @@ class Delegator
   constructor: (element, options) ->
     @options = $.extend(true, {}, @options, options)
     @element = $(element)
+    @document = $(document.body)
 
     this.on = this.subscribe
     this.addEvents()
+
+  destroy: ->
+    this.removeEvents()
 
   # Binds the function names in the @events Object to thier events.
   #
@@ -89,8 +93,12 @@ class Delegator
 
     bindTo = @element if isBlankSelector
 
+    # console.log("addEvent:", {bindTo: bindTo, bindToDocument: @options.bindToDocument, event: event, functionName: functionName})
     if typeof bindTo is 'string'
-      @element.delegate bindTo, event, closure
+      if @options.bindToDocument?
+        @document.on event, bindTo, closure
+      else
+        @element.on event, bindTo, closure
     else
       if this.isCustomEvent(event)
         this.subscribe event, closure
@@ -98,6 +106,32 @@ class Delegator
         $(bindTo).bind event, closure
 
     this
+
+  # Remove all event handlers that were setup by the constructor
+  removeEvents: ->
+    for sel, functionName of @events
+      [selector..., event] = sel.split ' '
+      this.removeEvent selector.join(' '), event, functionName
+
+  # Remove a single event handler
+  removeEvent: (bindTo, event, functionName) ->
+    isBlankSelector = typeof bindTo is 'string' and bindTo.replace(/\s+/g, '') is ''
+
+    bindTo = @element if isBlankSelector
+
+    # console.log("removeEvent:", {bindTo: bindTo, bindToDocument: @options.bindToDocument, event: event, functionName: functionName})
+    if typeof bindTo is 'string'
+      if @options.bindToDocument?
+        @document.off event, bindTo
+      else
+        @element.off event, bindTo
+    else
+      if this.isCustomEvent(event)
+        this.unsubscribe event
+      else
+        $(bindTo).unbind event
+
+
 
   # Checks to see if the provided event is a DOM event supported by jQuery or
   # a custom user event.
