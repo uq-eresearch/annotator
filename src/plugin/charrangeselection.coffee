@@ -24,10 +24,10 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
     # base
     extraChars = 50
 
-    content = @element.text()
-    content = cleanText(content)
+    if not annotation.ranges?
+      return annotation # not anotating text
 
-    # range = @annotator.selectedRanges[0].toRange()
+    content = cleanText(@element.text())
     range = annotation.ranges[0].normalize(@annotator.wrapper[0])
 
     charRange = new CharRange()
