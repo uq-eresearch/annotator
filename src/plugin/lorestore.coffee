@@ -463,15 +463,25 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     jQuery.extend(annotation, @options.annotationData)
     
     bodysrid = 'urn:uuid:' + this._uuid()
-    targetsrid = 'urn:uuid:' + this._uuid()
-    targetselid = 'urn:uuid:' + this._uuid()
+    
+
+    if annotation.uri
+      # first check whether a uri is explicitly set in annotation data (e.g. by another plugin such as the reply plugin)
+      targeturi = annotation.uri
+    else if @element.data('id') 
     # in AustESE we apply annotations to elements with data-id attr that identifies the underlying target object
     # i.e. a transcription, image or entity identified by a URI
-    if @element.data('id') 
       targeturi = @element.data('id') 
     else 
+      # fall back to using the URI of the current page
       targeturi = document.location.href
-    # TODO: generate annotatedBy, annotatedAt
+
+    # check whether annotation data includes selection, to determine whether the target is the resource URI or a URN identifying a specific target
+    if (annotation.quote || annotation.relativeSelection)
+      targetsrid = 'urn:uuid:' + this._uuid()
+    else
+      targetsrid = targeturi
+
     tempanno = {
       '@context':
         "oa": "http://www.w3.org/ns/oa#"
@@ -493,19 +503,27 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
           '@type': 'cnt:ContentAsText'
           'cnt:chars': annotation.text
           'dc:format': 'text/plain' 
-        },{
+        }
+      ]
+    }
+    # check for motivation
+    if annotation.motivation
+      tempanno['@graph'][0]['oa:motivatedBy'] = {'@id': annotation.motivation}
+
+    # add specific target if required
+    if (annotation.quote || annotation.relativeSelection)
+      targetselid = 'urn:uuid:' + this._uuid()
+      specifictarget = {
           '@id': targetsrid
           '@type': 'oa:SpecificResource'
           'oa:hasSource':  
-             # FIXME: we need to store uri of target resource for text resources too and get this from the anno object - only use location.href as last resort
             '@id': targeturi
           'oa:hasSelector':
              '@id': targetselid
         }
-      ]
-    }
-    if annotation.motivation
-      tempanno['@graph'][0]['oa:motivatedBy'] = {'@id': annotation.motivation}
+      tempanno['@graph'].push specifictarget
+
+    # add selector for target if required
     if annotation.quote
       # text annotation
       targetselector = 
