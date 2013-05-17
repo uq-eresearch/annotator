@@ -180,23 +180,9 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     # with ids from the server).
     jQuery(annotation.highlights).data('annotation', annotation)
 
-
-  # Callback method for LoreStore#loadAnnotationsFromSearch(). Processes the data
-  # returned from the server (a JSON array of annotation Objects) and updates
-  # the registry as well as loading them into the Annotator.
-  #
-  # data - An Array of annotation Objects
-  #
-  # Examples
-  #
-  #   console.log @annotation # => []
-  #   store._onLoadAnnotations([{}, {}, {}])
-  #   console.log @annotation # => [{}, {}, {}]
-  #
-  # Returns nothing.
-  _onLoadAnnotations: (data=[]) =>
     # map OA results into internal annotator format
-    @loads--
+  mapAnnotations: (data=[]) =>
+    annotations = []
     annos = this._findAnnos(data['@graph'])
     for anno in annos
       body = this._findById(data['@graph'], anno['hasBody'])
@@ -211,6 +197,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       if anno.annotatedBy
         creator = this._findById(data['@graph'], anno.annotatedBy)
         if creator
+          tempanno.annotatedBy = anno.annotatedBy
           tempanno.creator = creator.name
       if anno.annotatedAt
         tempanno.created = anno.annotatedAt['@value']
@@ -234,19 +221,12 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
             when 'oa:TextPositionSelector'
               tempanno.startOffset = sel['start']
               tempanno.endOffset = sel['end']
-              
         if typeof targetsel.item == 'string'
           selector = this._findById(data['@graph'], targetsel.item)
           processSelector(selector)
-
         else if typeof targetsel.item =='object'
           selectors = (this._findById(data['@graph'], id) for id in targetsel.item)
           processSelector(selector) for selector in selectors
-
-
-
-
-
       else if targetsel && targetsel.value && targetsel.value.match("xywh=")
         image = jQuery("[data-id='" + target.hasSource + "']").find('img')
         if image.length > 0
@@ -261,8 +241,26 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
           "height": parseFloat(selectiondata[3])
           "image": image
 
-      @annotations.push tempanno
+      annotations.push tempanno
+    # return annotations
+    annotations
       
+  # Callback method for LoreStore#loadAnnotationsFromSearch(). Processes the data
+  # returned from the server (a JSON array of annotation Objects) and updates
+  # the registry as well as loading them into the Annotator.
+  #
+  # data - An Array of annotation Objects
+  #
+  # Examples
+  #
+  #   console.log @annotation # => []
+  #   store._onLoadAnnotations([{}, {}, {}])
+  #   console.log @annotation # => [{}, {}, {}]
+  #
+  # Returns nothing.
+  _onLoadAnnotations: (data=[]) =>
+    @loads--
+    @annotations = this.mapAnnotations(data)
     if(@loads == 0)
       #console.log("annotator load annotations",data,@annotations)
       @annotator.loadAnnotations(@annotations.slice()) # Clone array
@@ -506,6 +504,17 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
         }
       ]
     }
+    # check for creator and created - lorestore inserts prov info for new annotations but expects it to be preserved in updates
+    if annotation.annotatedBy
+      tempanno['@graph'][0]['oa:annotatedBy'] = {'@id': annotation.annotatedBy}
+      agent = {
+        '@id': annotation.annotatedBy
+        'foaf:name': annotation.creator
+      }
+      tempanno['@graph'].push agent
+    if annotation.created
+      tempanno['@graph'][0]['oa:annotatedAt'] = {'@value': annotation.created, '@type': 'dcterms:W3CDTF'}
+
     # check for motivation
     if annotation.motivation
       tempanno['@graph'][0]['oa:motivatedBy'] = {'@id': annotation.motivation}
