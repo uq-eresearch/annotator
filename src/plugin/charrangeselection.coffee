@@ -56,7 +56,7 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
 
           this._loadAnnotation(annotation)
 
-        else if annotation.quote != annotation.text
+        else if annotation.originalQuote != annotation.text
           # delete existing
           if annotation.highlights?
             for h in annotation.highlights
@@ -78,8 +78,8 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
     range = new CharRange().rangeFromCharOffsets(head, offsets)
 
     selectedText = range.toString().trim()
-    if annotation.quote? and annotation.quote != selectedText
-      console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.quote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
+    if annotation.originalQuote? and annotation.originalQuote != selectedText
+      console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.originalQuote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
       return
 
 #        console.log("findRange", {range: range, text: range.toString()})

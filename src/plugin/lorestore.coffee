@@ -217,6 +217,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       if targetsel && targetsel['@type']=='oa:Choice'
         textQuoteSelector = this._findById(data['@graph'], targetsel.default)
         tempanno.quote = textQuoteSelector.exact
+        tempanno.originalQuote = textQuoteSelector.exact
         tempanno.prefix = textQuoteSelector.prefix
         tempanno.suffix = textQuoteSelector.suffix
 
