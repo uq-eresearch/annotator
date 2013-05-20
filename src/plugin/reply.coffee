@@ -91,7 +91,6 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 	showReplies: (event) ->
 		item = Annotator.$(event.target).parents('.annotator-annotation')
 		anno = item.data('annotation')
-		console.log("show replies", anno)
 		item.find('.annotator-replies-content').toggle()
 
 	viewAnnotation: (event) ->
