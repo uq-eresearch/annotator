@@ -190,7 +190,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     jQuery(annotation.highlights).data('annotation', annotation)
 
   # map OA results into internal annotator format
-  mapAnnotations: (data=[]) =>
+  mapAnnotations: (data={}) =>
     annotations = []
     annos = this._findAnnos(data['@graph'])
     for anno in annos
@@ -267,7 +267,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   #   console.log @annotation # => [{}, {}, {}]
   #
   # Returns nothing.
-  _onLoadAnnotations: (data=[]) =>
+  _onLoadAnnotations: (data={}) =>
     @loads--
     @annotations = this.mapAnnotations(data)
     if(@loads == 0)

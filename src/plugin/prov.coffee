@@ -21,7 +21,7 @@ class Annotator.Plugin.Prov extends Annotator.Plugin
   updateViewer: (field, annotation) ->
     field = Annotator.$(field)
     if annotation.creator || annotation.created
-      field.addClass('annotator-prov').html(
+      field.addClass('annotator-prov').html('<span class="annotator-motivation"></span>' +
         (if annotation.creator then 'by ' + Annotator.$.escape(annotation.creator) + ", " else "") + 
         (if annotation.created then jQuery.timeago(new Date(Annotator.$.escape(annotation.created))) else "")
       )
