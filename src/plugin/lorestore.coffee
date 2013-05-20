@@ -194,9 +194,10 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     annotations = []
     annos = this._findAnnos(data['@graph'])
     for anno in annos
-      body = this._findById(data['@graph'], anno['hasBody'])
-      target = this._findById(data['@graph'], anno['hasTarget'])
-      targetsel = this._findById(data['@graph'],target['hasSelector'])
+      body = this._findById(data['@graph'], anno.hasBody)
+      target = this._findById(data['@graph'], anno.hasTarget)
+      if (target && target.hasSelector)
+        targetsel = this._findById(data['@graph'],target.hasSelector)
       tempanno = {
         "id" : anno['@id']
         "text": body.chars
