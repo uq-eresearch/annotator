@@ -93,6 +93,12 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
 
     @input = Annotator.$(@field).find('select')
 
+  
+  constructor: (element, options) ->
+    super 
+    if options.motivations
+      # fully override motivations
+      @options.motivations = options.motivations
 
   # Annotator.Editor callback function. Updates the @input field with the
   # Motivation attached to the provided annotation.
