@@ -81,18 +81,21 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
       this._apiRequest('create', annotation, (data) =>
         # Update with ID from server
         anno = this._findAnnos(data['@graph'])[0]
-        id = anno['@id']
-        created = anno.annotatedAt
-        creator = anno.annotatedBy
-        if (creator)
-          creator = this._findById(data['@graph'], creator)
-          if (creator && creator.name)
-            creator = creator.name
-        if (created)
-          created = created['@value']
-        if not id?
-          console.warn Annotator._t("Warning: No ID returned from server for annotation "), annotation
-        this.updateAnnotation annotation, {'id': id, 'created': created, 'creator': creator}
+        if anno
+          id = anno['@id']
+          created = anno.annotatedAt
+          creator = anno.annotatedBy
+          if creator
+            creator = this._findById(data['@graph'], creator)
+            if creator and creator.name
+              creator = creator.name
+              if created
+                created = created['@value']
+                if not id?
+                  console.warn Annotator._t("Warning: No ID returned from server for annotation "), annotation
+          this.updateAnnotation annotation, {'id': id, 'created': created, 'creator': creator}
+        if not anno?
+          console.warn Annotator._t("Warning: no anno returned from server"), annotation
       )
     else
       # This is called to update annotations created at load time with

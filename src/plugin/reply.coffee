@@ -57,7 +57,7 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 		# issue search request to retrieve annotations annotating annotation.id
 		if annotation.replies
 			handleReplies annotation.replies
-		else
+		else if annotation.id
 			# FIXME: should not be calling private store function
 			store._apiRequest 'search', {'annotates': annotation.id}, handleReplies
 
@@ -70,12 +70,12 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 	onReplyClick: (event) ->
 		item = Annotator.$(event.target).parents('.annotator-annotation')
 		anno = item.data('annotation')
-		# delete cached replies so that new reply will also be loaded next time anno is viewed
-		delete anno.replies
 		replyPosition = Annotator.$(@annotator.viewer.element).position()
 		replyanno = this.setupReply(anno)
 
 		save = =>
+			# delete cached replies so that new reply will also be loaded next time anno is viewed
+			delete anno.replies
 			do cleanup
 			# Fire annotationCreated events so that plugins can react to them
 			this.publish('annotationCreated', [replyanno])
