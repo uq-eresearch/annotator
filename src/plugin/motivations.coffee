@@ -1,6 +1,7 @@
 # Public: Motivations plugin allows users to select a Motivation
 class Annotator.Plugin.Motivations extends Annotator.Plugin
   options:
+    showField: true
     motivations: 
       [
         {
@@ -68,7 +69,7 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
   pluginInit: ->
     return unless Annotator.supported()
     # todo config for motivations (read from options)
-  
+
     @field = @annotator.editor.addField({
       label:  Annotator._t('ExplanatoryNote')
       load:   this.updateField
@@ -92,6 +93,12 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
 
     @input = Annotator.$(@field).find('select')
 
+  
+  constructor: (element, options) ->
+    super 
+    if options.motivations
+      # fully override motivations
+      @options.motivations = options.motivations
 
   # Annotator.Editor callback function. Updates the @input field with the
   # Motivation attached to the provided annotation.
@@ -120,13 +127,21 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
   #
   # Returns nothing.
   updateViewer: (field, annotation) ->
+    
     field = Annotator.$(field)
     if annotation.motivation 
       displayValue = annotation.motivation
       for m in this.annoPlugin.options.motivations
         if m.value == annotation.motivation
           displayValue = m.label
-      field.addClass('annotator-motivation').html('<span class="annotator-motivation">' + Annotator.$.escape(displayValue) + '</span>')
+          # check whether there is an element in the viewer with class annotator-motivation:
+          # update this if available (this allows other plugins to display motivation in their field - see Prov for example)
+          
+          field.parent().parent().find('.annotator-motivation').html(Annotator.$.escape(displayValue) + " ")
+          if this.annoPlugin.options.showField
+            field.addClass('annotator-motivation').html('<span class="annotator-motivation">' + Annotator.$.escape(displayValue) + '</span>')
+          else
+            field.remove()
     else
       field.remove()
 
