@@ -3,9 +3,9 @@
 class Annotator.Plugin.Reply extends Annotator.Plugin
 	events:
 		"annotationViewerShown": "annotationViewerShown"
-		".annotator-reply click":   "onReplyClick"
-		".annotator-replies-count click": "showReplies"
-		".annotator-link click": "viewAnnotation"
+		#".annotator-reply click":   "onReplyClick"
+		#".annotator-replies-count click": "showReplies"
+		#".annotator-link click": "viewAnnotation"
 
 	pluginInit: ->
 		return unless Annotator.supported()
@@ -18,6 +18,14 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 			load: this.updateEditorInReplyTo
 			annoPlugin: this
 		})
+		
+		this.addLocalEvent(@annotator.viewer.element, '.annotator-reply', 'click', 'onReplyClick')
+		this.addLocalEvent(@annotator.viewer.element, '.annotator-replies-count', 'click', 'showReplies')
+		this.addLocalEvent(@annotator.viewer.element, '.annotator-link', 'click', 'viewAnnotation')
+
+	addLocalEvent: (el, bindTo, event, functionName) ->
+		closure = => this[functionName].apply(this, arguments)
+		el.on event, bindTo, closure
 
 	# display details of annotation being replied to in editor
 	updateEditorInReplyTo: (field,annotation) ->
