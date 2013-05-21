@@ -26,7 +26,7 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 			Annotator.$(field).attr('readonly',true).addClass('muted').css('padding','2px')
 			.html("In reply to '<i>" + text + "</i>'" + (if annotation.inReplyTo.creator then " by " + annotation.inReplyTo.creator else ""))
 		else
-			field.remove()
+			Annotator.$(field).remove()
 
 	# display any replies in a field in the viewer
 	updateViewerReplies: (field, annotation) ->
@@ -35,6 +35,8 @@ class Annotator.Plugin.Reply extends Annotator.Plugin
 			if !annotation.replies
 				annotation.replies = store.mapAnnotations(result)
 			replies = annotation.replies
+			replies.sort (a,b) ->
+				return a.created > b.created
 			if replies.length > 0
 				repliescount = Annotator.$("<span class='annotator-replies-count'>" + replies.length + " Repl" + (if replies.length == 1 then "y" else "ies") + "</span>")
 				repliescontent = Annotator.$("<div class='annotator-replies-content' style='display:none;padding-top:0.5em'></div>")
