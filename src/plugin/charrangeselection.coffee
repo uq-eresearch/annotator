@@ -2,7 +2,6 @@
 class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
   events:
     'annotationCreated': 'annotationCreated'
-    'annotationUpdated': 'annotationUpdated'
     'annotationsLoaded': 'annotationsLoaded'
 
 
