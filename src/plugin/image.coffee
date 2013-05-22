@@ -83,8 +83,10 @@ class Annotator.Plugin.Image extends Annotator.Plugin
   # to refresh the displayed image annotations
   _setupListeners: ->
     events = [
-      'annotationsLoaded', 'annotationCreated',
-      'annotationUpdated', 'annotationDeleted'
+      'annotationsLoaded', 
+      'annotationCreated',
+      'annotationUpdated', 
+      'annotationDeleted'
     ]
 
     for event in events
