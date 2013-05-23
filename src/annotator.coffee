@@ -657,7 +657,7 @@ class Annotator extends Delegator
     # already displaying the viewer
     return false if @mouseIsDown# or @viewer.isShown()
     return false if @viewer.isShown() and not $.fn.hoverIntent?
-    return false if @editor.isShown()
+    return false if @editor.isShown() and event.target in @editor.annotation.highlights
 
     annotations = $(event.target)
       .parents('.annotator-hl')
