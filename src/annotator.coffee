@@ -39,10 +39,7 @@ _Annotator = this.Annotator
 class Annotator extends Delegator
 
   # Events to be bound on Annotator#element.
-  events:
-    # ".annotator-adder button click":     "onAdderClick"
-    ".annotator-hl mouseover":           "onHighlightMouseover"
-    ".annotator-hl mouseout":            "startViewerHideTimer"
+  events: {}
 
   html:
     adder:   '<div class="annotator-adder"><button>' + _t('Annotate') + '</button></div>'
@@ -101,6 +98,21 @@ class Annotator extends Delegator
     super
     @plugins = {}
 
+    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
+
+    # Setup events to show and hide the viewer
+    if $.fn.hoverIntent?
+      $(appendTo).hoverIntent(
+        => this.onHighlightMouseover.apply(this, arguments),
+        => this.startViewerHideTimer.apply(this, arguments),
+        '.annotator-hl')
+    else
+      $(appendTo).on("mouseover", ".annotator-hl",
+        => this.onHighlightMouseover.apply(this, arguments))
+      $(appendTo).on("mouseout", ".annotator-hl",
+        => this.startViewerHideTimer.apply(this, arguments))
+
+
     # Return early if the annotator is not supported.
     return this unless Annotator.supported()
     this._setupDocumentEvents() unless @options.readOnly
@@ -108,7 +120,6 @@ class Annotator extends Delegator
     this._setupDynamicStyle()
 
     # Create adder
-    appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
     this.adder = $(this.html.adder).appendTo(appendTo).hide()
     this.adder.on("click", "button",
       => this.onAdderClick.apply(this, arguments))
@@ -644,7 +655,8 @@ class Annotator extends Delegator
 
     # Don't do anything if we're making a selection or
     # already displaying the viewer
-    return false if @mouseIsDown or @viewer.isShown()
+    return false if @mouseIsDown# or @viewer.isShown()
+    return false if @viewer.isShown() and not $.fn.hoverIntent?
 
     annotations = $(event.target)
       .parents('.annotator-hl')
