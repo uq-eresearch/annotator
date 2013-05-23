@@ -93,9 +93,13 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
                 created = created['@value']
                 if not id?
                   console.warn Annotator._t("Warning: No ID returned from server for annotation "), annotation
+                  # open editor because something went wrong
+                  this._revertSave(annotation, true)
           this.updateAnnotation annotation, {'id': id, 'created': created, 'creator': creator}
         if not anno?
           console.warn Annotator._t("Warning: no anno returned from server"), annotation
+          # open editor because something went wrong
+          this._revertSave(annotation, true)
       )
     else
       # This is called to update annotations created at load time with
@@ -116,7 +120,6 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   # Returns nothing.
   annotationUpdated: (annotation) ->
     if annotation in this.annotations
-      #'id': this._findAnnos(data['@graph'])[0]['@id']
       this._apiRequest 'update', annotation, ((data) => this.updateAnnotation(annotation, {}))
 
   # Public: Callback method for annotationDeleted event. Receives an annotation
@@ -353,6 +356,7 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     # for use in the error callback.
     request._id = id
     request._action = action
+    request._obj = obj
     request
 
   # Builds an options object suitable for use in a jQuery.ajax() call.
@@ -586,6 +590,13 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     #console.log("dataFor",data)
     data
 
+  # For when something goes wrong - reopens the editor and removes any highlight that might make it seem that the annotation was created ok
+  _revertSave: (anno, removeHighlights) =>
+    @annotator.editor.load(anno)
+    if removeHighlights and anno.highlights
+      for h in anno.highlights
+        Annotator.$(h).replaceWith(h.childNodes)
+
   # jQuery.ajax() callback. Displays an error notification to the user if
   # the request failed.
   #
@@ -595,11 +606,17 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
   _onError: (xhr) =>
     action  = xhr._action
     message = Annotator._t("Unable to ") + action + Annotator._t(" this annotation")
-
+    obj = xhr._obj
+    
     if xhr._action == 'search'
       message = Annotator._t("Unable to search the store for annotations")
     else if xhr._action == 'read' && !xhr._id
       message = Annotator._t("Unable to ") + action + Annotator._t(" the annotations from the store")
+    if obj and obj.highlights
+      if xhr._action == 'create'
+        this._revertSave(obj, true)
+      if xhr._action == 'update'
+        this._revertSave(obj, false)
 
     switch xhr.status
       when 401 then message = Annotator._t("Sorry you are not allowed to ") + action + Annotator._t(" this annotation")
