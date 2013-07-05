@@ -36,6 +36,18 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     super
     @annotations = []
 
+  # Called when an annotator instance is being remove from a page
+  #
+  # Since the store plugin has a record of all annotations, it
+  # removes the markers for each of them from the page.
+  destroy: ->
+    super()
+
+    for annotation in @annotations
+      @annotator.hideAnnotation(annotation)
+    
+
+
   # Public: Initialises the plugin and loads the latest annotations. If the
   # Auth plugin is also present it will request an auth token before loading
   # any annotations.

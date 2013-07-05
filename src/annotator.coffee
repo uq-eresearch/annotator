@@ -384,6 +384,17 @@ class Annotator extends Delegator
     this.publish('annotationUpdated', [annotation])
     annotation
 
+  # Public: Remove the markers for an annotation
+  #
+  # annotation - An annotation Object to hide
+  hideAnnotation: (annotation) ->
+    if annotation.removeMarkers?
+      annotation.removeMarkers()
+    else
+      for h in annotation.highlights
+        $(h).replaceWith(h.childNodes)
+
+
   # Public: Deletes the annotation by removing the highlight from the DOM.
   # Publishes the 'annotationDeleted' event on completion.
   #
@@ -391,11 +402,7 @@ class Annotator extends Delegator
   #
   # Returns deleted annotation.
   deleteAnnotation: (annotation) ->
-    if annotation.removeMarkers?
-      annotation.removeMarkers()
-    else
-      for h in annotation.highlights
-        $(h).replaceWith(h.childNodes)
+    this.hideAnnotation(annotation)
 
     this.publish('annotationDeleted', [annotation])
     annotation
