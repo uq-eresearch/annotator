@@ -140,7 +140,6 @@ class Annotator.Plugin.Image extends Annotator.Plugin
 
     marker.css(
       position: 'absolute'
-      border: @borderWidth + 'px solid ' + @borderColour
       zIndex: 1000
 #        zIndex: _n.parent().css('zIndex')
     ).offset(
