@@ -93,7 +93,7 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
 # html elements. Requires the contained text to be similar, excepting newlines
 # and space characters.
 class CharRange
-
+  DOM_ANNOTATOR_IGNORE_ATTRIBUTE = 'annotator_ignore'
   TEXT_NODE = 3
 
   offsetsOfString: (node, text) ->
@@ -122,6 +122,8 @@ class CharRange
     offsets = {}
     charCount = 0
     findOffsets = (currNode) ->
+      if currNode.hasAttribute?(DOM_ANNOTATOR_IGNORE_ATTRIBUTE)
+        return false
       if currNode.nodeType == TEXT_NODE
         if currNode == range.start
           offsets.start = charCount
@@ -142,6 +144,8 @@ class CharRange
     range = document.createRange()
 
     findRange = (currNode) ->
+      if currNode.hasAttribute?(DOM_ANNOTATOR_IGNORE_ATTRIBUTE)
+        return false
       if currNode.nodeType == TEXT_NODE
         length = cleanText(currNode.textContent).length
         if length + charCount > startOffset and charCount <= startOffset
@@ -200,9 +204,13 @@ cleanText = (text) ->
 removeChars = /[\n\s]/;
 removeCharsGlobal = /[\n\s]/g;
 
-
+# Walk the dom tree starting with `node`
+# Calling `func` on each node
+# If `func` returns false, skip the current subtree
 walkDom = (node, func) ->
-  func(node)
+  returnVal = func(node)
+  if returnVal == false
+    return
   node = node.firstChild
   while (node)
     walkDom(node, func)
