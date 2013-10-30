@@ -146,6 +146,8 @@ class CharRange
     findRange = (currNode) ->
       if currNode.hasAttribute?(DOM_ANNOTATOR_IGNORE_ATTRIBUTE)
         return false
+      if range.endContainer != document
+        return false
       if currNode.nodeType == TEXT_NODE
         length = cleanText(currNode.textContent).length
         if length + charCount > startOffset and charCount <= startOffset
