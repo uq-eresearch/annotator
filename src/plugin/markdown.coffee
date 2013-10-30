@@ -51,4 +51,7 @@ class Annotator.Plugin.Markdown extends Annotator.Plugin
   #
   # Returns HTML string.
   convert: (text) ->
-    @converter.makeHtml text
+    @converter.makeHtml(this.htmlDecode(text))
+
+  htmlDecode: (value) ->
+    Annotator.$('<div/>').html(value).text()
