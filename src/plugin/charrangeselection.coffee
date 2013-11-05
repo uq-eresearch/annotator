@@ -76,8 +76,8 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
 
     range = new CharRange().rangeFromCharOffsets(head, offsets)
 
-    selectedText = range.toString().trim()
-    if annotation.originalQuote? and annotation.originalQuote != selectedText
+    selectedText = range.toString().replace(/\s+/g, ' ').trim()
+    if annotation.originalQuote? and annotation.originalQuote.replace(/\s+/g, ' ').trim() != selectedText
       console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.originalQuote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
       return
 
@@ -146,7 +146,7 @@ class CharRange
     findRange = (currNode) ->
       if currNode.hasAttribute?(DOM_ANNOTATOR_IGNORE_ATTRIBUTE)
         return false
-      if range.endContainer != document
+      if charCount >= endOffset
         return false
       if currNode.nodeType == TEXT_NODE
         length = cleanText(currNode.textContent).length
