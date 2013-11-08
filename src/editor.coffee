@@ -87,6 +87,19 @@ class Annotator.Editor extends Annotator.Widget
 
     this.publish('show')
 
+  # Public: Checks to see if the Editor is currently displayed.
+  #
+  # Examples
+  #
+  #   editor.show()
+  #   editor.isShown() # => Returns true
+  #
+  #   editor.hide()
+  #   editor.isShown() # => Returns false
+  #
+  # Returns true if the Editor is visible.
+  isShown: ->
+    not @element.hasClass(@classes.hide)
 
   # Public: Hides the Editor and fires a "hide" event. Can be used as an event
   # callback and will call Event#preventDefault() on the supplied event.

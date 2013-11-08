@@ -85,13 +85,13 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
     # As most events for this plugin are relative to the toolbar which is
     # not inside the Annotator#Element we override the element property.
     # Annotator#Element can still be accessed via @annotator.element.
-    element = $(@html.element).appendTo(options?.appendTo or @options.appendTo)
+    element = Annotator.$(@html.element).appendTo(options?.appendTo or @options.appendTo)
 
     super element, options
 
     @options.filters or= []
 
-    @filter  = $(@html.filter)
+    @filter  = Annotator.$(@html.filter)
     @filters = []
     @current  = 0
 
@@ -124,7 +124,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns itself
   _insertSpacer: ->
-    html = $('html')
+    html = Annotator.$('html')
     currentMargin = parseInt(html.css('padding-top'), 10) || 0
     html.css('padding-top', currentMargin + @element.outerHeight())
     this
@@ -165,7 +165,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns itself to allow chaining.
   addFilter: (options) ->
-    filter = $.extend({
+    filter = Annotator.$.extend({
       label: ''
       property: ''
       isFiltered: @options.isFiltered
@@ -209,12 +209,12 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
 
     this.updateHighlights()
     this.resetHighlights()
-    input = $.trim filter.element.find('input').val()
+    input = Annotator.$.trim filter.element.find('input').val()
 
     if input
-      annotations = @highlights.map -> $(this).data('annotation')
+      annotations = @highlights.map -> Annotator.$(this).data('annotation')
 
-      for annotation in $.makeArray(annotations)
+      for annotation in Annotator.$.makeArray(annotations)
         property = annotation[filter.property]
         if filter.isFiltered input, property
           filter.annotations.push annotation
@@ -235,20 +235,20 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns itself for chaining.
   filterHighlights: ->
-    activeFilters = $.grep @filters, (filter) -> !!filter.annotations.length
+    activeFilters = Annotator.$.grep @filters, (filter) -> !!filter.annotations.length
 
     filtered = activeFilters[0]?.annotations || []
     if activeFilters.length > 1
       # If there are more than one filter then only annotations matched in every
       # filter should remain.
       annotations = []
-      $.each activeFilters, ->
-        $.merge(annotations, this.annotations)
+      Annotator.$.each activeFilters, ->
+        Annotator.$.merge(annotations, this.annotations)
 
       uniques  = []
       filtered = []
-      $.each annotations, ->
-        if $.inArray(this, uniques) == -1
+      Annotator.$.each annotations, ->
+        if Annotator.$.inArray(this, uniques) == -1
           uniques.push this
         else
           filtered.push this
@@ -276,7 +276,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns nothing
   _onFilterFocus: (event) =>
-    input = $(event.target)
+    input = Annotator.$(event.target)
     input.parent().addClass(@classes.active)
     input.next('button').show()
 
@@ -287,7 +287,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   # Returns nothing.
   _onFilterBlur: (event) =>
     unless event.target.value
-      input = $(event.target)
+      input = Annotator.$(event.target)
       input.parent().removeClass(@classes.active)
       input.next('button').hide()
 
@@ -297,7 +297,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns nothing.
   _onFilterKeyup: (event) =>
-    filter = $(event.target).parent().data('filter')
+    filter = Annotator.$(event.target).parent().data('filter')
     this.updateFilter filter if filter
 
   # Locates the next/previous highlighted element in @highlights from the
@@ -350,12 +350,12 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns nothing.
   _scrollToHighlight: (highlight) ->
-    highlight = $(highlight)
+    highlight = Annotator.$(highlight)
 
     @highlights.removeClass(@classes.hl.active)
     highlight.addClass(@classes.hl.active)
 
-    $('html, body').animate({
+    Annotator.$('html, body').animate({
       scrollTop: highlight.offset().top - (@element.height() + 20)
     }, 150)
 
@@ -365,4 +365,4 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   #
   # Returns nothing.
   _onClearClick: (event) ->
-    $(event.target).prev('input').val('').keyup().blur()
+    Annotator.$(event.target).prev('input').val('').keyup().blur()

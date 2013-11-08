@@ -229,3 +229,4 @@ describe 'Range', ->
         assert.isTrue(mockRange.setEndAfter.calledWith(r.end))
 
         document.createRange.restore()
+

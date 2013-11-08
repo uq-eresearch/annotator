@@ -4,3 +4,5 @@
 .cake_task_cache
 *.sublime-workspace
 node_modules
+test/runner.js
+lib/vendor/jquery.imgareaselect-0.9.10

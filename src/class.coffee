@@ -29,6 +29,7 @@ class Delegator
   constructor: (element, options) ->
     @options = $.extend(true, {}, @options, options)
     @element = $(element)
+    @document = $(document.body)
 
     # Delegator creates closures for each event it binds. This is a private
     # registry of created closures, used to enable event unbinding.
@@ -36,6 +37,9 @@ class Delegator
 
     this.on = this.subscribe
     this.addEvents()
+
+  destroy: ->
+    this.removeEvents()
 
   # Public: binds the function names in the @events Object to their events.
   #
@@ -101,6 +105,16 @@ class Delegator
   _addEvent: (selector, event, functionName) ->
     closure = => this[functionName].apply(this, arguments)
 
+    # isBlankSelector = typeof bindTo is 'string' and bindTo.replace(/\s+/g, '') is ''
+
+    # bindTo = @element if isBlankSelector
+
+    # if typeof bindTo is 'string'
+    #   if @options.bindToDocument?
+    #     @document.on event, bindTo, closure
+    #   else
+    #     @element.on event, bindTo, closure
+
     if selector == '' and Delegator._isCustomEvent(event)
       this.subscribe(event, closure)
     else
@@ -109,6 +123,25 @@ class Delegator
     @_closures["#{selector}/#{event}/#{functionName}"] = closure
 
     this
+
+  # # Remove a single event handler
+  # removeEvent: (bindTo, event, functionName) ->
+  #   isBlankSelector = typeof bindTo is 'string' and bindTo.replace(/\s+/g, '') is ''
+
+  #   bindTo = @element if isBlankSelector
+
+  #   # console.log("removeEvent:", {bindTo: bindTo, bindToDocument: @options.bindToDocument, event: event, functionName: functionName})
+  #   if typeof bindTo is 'string'
+  #     if @options.bindToDocument?
+  #       @document.off event, bindTo
+  #     else
+  #       @element.off event, bindTo
+  #   else
+  #     if this.isCustomEvent(event)
+  #       this.unsubscribe event
+  #     else
+  #       $(bindTo).unbind event
+
 
   # Unbinds a function previously bound to an event by the _addEvent method.
   #
