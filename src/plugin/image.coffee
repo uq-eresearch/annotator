@@ -32,6 +32,12 @@ class Annotator.Plugin.Image extends Annotator.Plugin
     # Setup listeners to show existing annotations
     this._setupListeners()
 
+  destroy: ->
+    @element.find('img').imgAreaSelect({
+        remove: true
+      })
+
+
   _onWindowResized: =>
     annoPlugin = this
     jQuery(document).find('span.annotator-hl').map(->
