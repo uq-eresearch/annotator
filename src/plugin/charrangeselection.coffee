@@ -114,7 +114,7 @@ class CharRange
 
   # Returns an object with
   offsetsFromDomRange: (node, range) ->
-    range = new Annotator.Range.BrowserRange(range).normalize(node)
+    range = new Range.BrowserRange(range).normalize(node)
     this.offsetsFromNormalizedRange(node, range)
     
 

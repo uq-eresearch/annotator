@@ -26,26 +26,27 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
   describe 'annotationCreated', ->
     beforeEach ->
       plugin.annotationCreated(annotation)
-      expect(range.toString()).toEqual('text')
+      assert.equal(range.toString(), 'text')
 
 
     it 'should add offset', ->
       # expect(annotation.startOffset).toBeDefined()
-      expect(annotation.startOffset).toBe(4)
+      assert.equal(annotation.startOffset, 4)
       # expect(annotation.endOffset).toBeDefined()
-      expect(annotation.endOffset).toBe(8)
+      assert.equal(annotation.endOffset, 8)
 
     it 'should add prefix/suffix fields to the annotation', ->
-      expect(annotation.prefix).toBeDefined()
-      expect(annotation.prefix.length).toBeLessThan(51)
-      expect(annotation.prefix).toEqual('Some')
-      expect(annotation.suffix).toBeDefined()
-      expect(annotation.suffix.length).toEqual(50)
-      expect(annotation.suffix).toEqual('.Loremipsumdolorsitamet,consecteturadipiscingelit.')
+      assert(annotation.prefix)
+      assert.operator(annotation.prefix.length, '<', 51)
+      assert.equal(annotation.prefix, 'Some')
+      assert(annotation.suffix)
+      assert.equal(annotation.suffix.length, 50)
+      assert.equal(annotation.suffix, '.Loremipsumdolorsitamet,consecteturadipiscingelit.')
 
 
   describe 'annotationsLoaded', ->
     annotations = []
+    annotator = null
 
     beforeEach ->
       annotation =
@@ -56,17 +57,20 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
       annotations.push(annotation)
 
       annotator = {}
-      annotator.setupAnnotation = jasmine.createSpy('setupAnnotation')
+      annotator.setupAnnotation = sinon.spy()
+      # sinon.stub(annotator, 'setupAnnotation').returns(null)
+      # annotator.setupAnnotation = jasmine.createSpy('setupAnnotation')
       plugin.annotator = annotator
 
       plugin.annotationsLoaded(annotations)
 
 
     it 'should add ranges', ->
-      expect(annotation.ranges).toBeDefined()
+      assert(annotation.ranges)
 
     it 'should call annotator.setupAnnotation', ->
-      expect(plugin.annotator.setupAnnotation).toHaveBeenCalled()
+      assert(annotator.setupAnnotation.called)
+      # expect(plugin.annotator.setupAnnotation).toHaveBeenCalled()
 
 
 
@@ -81,7 +85,7 @@ describe 'CharRange', ->
   selectSpan = null
 
   beforeEach ->
-    addFixture('charrangeselection')
+    addFixture 'charrangeselection'
     charRange = new CharRange()
     node1 = $('#text1')[0]
     textNode1 = node1.firstChild
@@ -98,25 +102,25 @@ describe 'CharRange', ->
   it 'can return the offsets from a range', ->
     range = document.createRange()
 
-    expect(range).not.toBe(null);
-    expect(textNode1).not.toBe(null);
+    assert.isNotNull(range);
+    assert.isNotNull(textNode1);
 
     range.setStart(textNode1, 3)
     range.setEnd(textNode1, 7)
 
-    expect(range.toString()).toEqual('e si')
+    assert.equal(range.toString(), 'e si')
 
     offsets = charRange.offsetsFromDomRange(node1, range)
-    expect(offsets.start).toEqual(3)
-    expect(offsets.end).toEqual(6) # skipped ' '
+    assert.equal(offsets.start, 3)
+    assert.equal(offsets.end, 6) # skipped ' '
 
 
   it 'can return the offsets of a string', ->
     string = 'simple'
     offsets = charRange.offsetsOfString(node1, string)
 
-    expect(offsets.start).toEqual(4) # skipped ' '
-    expect(offsets.end).toEqual(10) # skipped ' '
+    assert.equal(offsets.start, 4) # skipped ' '
+    assert.equal(offsets.end, 10) # skipped ' '
 
 
   it 'can round trip from a range', ->
@@ -128,7 +132,7 @@ describe 'CharRange', ->
 
     newRange = charRange.rangeFromCharOffsets(node1, offsets)
 
-    expect(range.toString()).toEqual(newRange.toString())
+    assert.equal(range.toString(), newRange.toString())
 
 
   it 'can return a range based on char offsets', ->
@@ -137,7 +141,7 @@ describe 'CharRange', ->
       end: 7
     range = charRange.rangeFromCharOffsets(node1, offsets)
 
-    expect(range.toString()).toEqual('e sim')
+    assert.equal(range.toString(), 'e sim')
 
 
   it 'can select text from a node with different formatting', ->
@@ -145,34 +149,34 @@ describe 'CharRange', ->
 
     offsets = charRange.offsetsOfString(node1, text)
 
-    expect(offsets).toEqual({start: 4, end: 10})
+    assert.deepEqual(offsets, {start: 4, end: 10})
 
     range2 = charRange.rangeFromCharOffsets(node2, offsets)
     range3 = charRange.rangeFromCharOffsets(node3, offsets)
 
-    expect(range2.toString().trim()).toEqual(text)
-    expect(range3.toString().trim()).toEqual(text)
+    assert.equal(range2.toString().trim(), text)
+    assert.equal(range3.toString().trim(), text)
 
   it 'can select text between different nodes to almost the end', ->
     text = 'e tex'
 
     offsets = charRange.offsetsOfString(node3, text)
-    expect(offsets).toEqual({start: 15, end: 19})
+    assert.deepEqual(offsets, {start: 15, end: 19})
 
     range2 = charRange.rangeFromCharOffsets(node2, offsets)
 
-    expect(range2.toString()).toEqual(text)
+    assert.equal(range2.toString(), text)
 
 
   it 'can select text between different nodes to the very end', ->
     text = 'e text'
 
     offsets = charRange.offsetsOfString(node3, text)
-    expect(offsets).toEqual({start: 15, end: 20})
+    assert.deepEqual(offsets, {start: 15, end: 20})
 
     range2 = charRange.rangeFromCharOffsets(node2, offsets)
 
-    expect(range2.toString()).toEqual(text)
+    assert.equal(range2.toString(), text)
 
 
   it 'can select text at the start of the node', ->
@@ -180,11 +184,11 @@ describe 'CharRange', ->
 
     offsets = charRange.offsetsOfString(node1, text)
 
-    expect(offsets).toEqual({start: 0, end: 5})
+    assert.deepEqual(offsets, {start: 0, end: 5})
 
     range2 = charRange.rangeFromCharOffsets(node2, offsets)
 
-    expect(range2.toString()).toEqual(text)
+    assert.equal(range2.toString(), text)
 
 
   it 'can handle selections of text that are repeated later', ->
@@ -194,50 +198,50 @@ describe 'CharRange', ->
     range.setStart(nodeTextRepeat1.firstChild, 0)
     range.setEnd(nodeTextRepeat1.firstChild, 4)
 
-    expect(range.toString()).toEqual('This')
+    assert.equal(range.toString(), 'This')
 
     offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
-    expect(offsets.start).toEqual(0)
-    expect(offsets.end).toEqual(4) # skipped ' '
+    assert.equal(offsets.start, 0)
+    assert.equal(offsets.end, 4) # skipped ' '
 
   it 'can select second occurance of repeated text', ->
     range = document.createRange()
     range.setStart(nodeTextRepeat1.firstChild, 24)
     range.setEnd(nodeTextRepeat1.firstChild, 28)
-    expect(range.toString()).toEqual('This')
+    assert.equal(range.toString(), 'This')
 
     offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
-    expect(offsets.start).toEqual(19)
-    expect(offsets.end).toEqual(23) # skipped ' '
+    assert.equal(offsets.start, 19)
+    assert.equal(offsets.end, 23) # skipped ' '
 
   it 'can select second occurance of repeated text from a different complex element', ->
     range = document.createRange()
     range.setStart(nodeTextRepeat1.firstChild, 24)
     range.setEnd(nodeTextRepeat1.firstChild, 28)
-    expect(range.toString() + 1).toEqual('This1')
+    assert.equal(range.toString() + 1, 'This1')
 
     offsets = charRange.offsetsFromDomRange(nodeTextRepeat1, range)
-    expect(offsets.start).toEqual(19)
-    expect(offsets.end).toEqual(23) # skipped ' '
+    assert.equal(offsets.start, 19)
+    assert.equal(offsets.end, 23) # skipped ' '
 
     range = charRange.rangeFromCharOffsets(nodeTextRepeat2, offsets)
-    expect(range.toString() + 2).toEqual('This2')
-    # expect(range.startOffset).toEqual(4)
-    # expect(range.endOffset).toEqual(1)
+    assert.equal(range.toString() + 2, 'This2')
+    # assert.equal(range.startOffset, 4)
+    # assert.equal(range.endOffset, 1)
 
   it 'can select text perfectly surrounded by a <span>', ->
     range = document.createRange()
     range.setStartBefore($('#selectSpan span')[0])
     range.setEndAfter($('#selectSpan span')[0])
 
-    expect(range.toString()).toEqual('some')
+    assert.equal(range.toString(), 'some')
     
     offsets = charRange.offsetsFromDomRange(selectSpan, range)
-    expect(offsets.start).toEqual(6)
-    expect(offsets.end).toEqual(10) # skipped ' '
+    assert.equal(offsets.start, 6)
+    assert.equal(offsets.end, 10) # skipped ' '
 
     newRange = charRange.rangeFromCharOffsets(selectSpan, offsets)
-    expect(newRange.toString() + 2).toEqual('some2')    
+    assert.equal(newRange.toString() + 2, 'some2')    
 
 
 

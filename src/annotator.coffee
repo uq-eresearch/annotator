@@ -69,6 +69,15 @@ class Annotator extends Delegator
     super
     @plugins = {}
 
+
+    # Return early if the annotator is not supported.
+    return this unless Annotator.supported()
+    this._setupDocumentEvents() unless @options.readOnly
+    this._setupWrapper()._setupViewer()._setupEditor()
+    this._setupDynamicStyle()
+
+    # Allow binding the elements to the document, instead of the annotated element
+    # Can be useful on elements where css overflow: hidden is used.
     appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
 
     # Setup events to show and hide the viewer
@@ -83,19 +92,14 @@ class Annotator extends Delegator
       $(appendTo).on("mouseout", ".annotator-hl",
         => this.startViewerHideTimer.apply(this, arguments))
 
-
-    # Return early if the annotator is not supported.
-    return this unless Annotator.supported()
-    this._setupDocumentEvents() unless @options.readOnly
-    this._setupWrapper()._setupViewer()._setupEditor()
-    this._setupDynamicStyle()
-
     # Create adder
     this.adder = $(this.html.adder).appendTo(appendTo).hide()
     this.adder.on("click", "button",
       => this.onAdderClick.apply(this, arguments))
     this.adder.on("mousedown", "button",
       => this.onAdderMousedown.apply(this, arguments))
+
+
 
     return
 
@@ -635,7 +639,7 @@ class Annotator extends Delegator
     appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
     if event and @selectedRanges.length
       @adder
-        .css(util.mousePosition(event, appendTo))
+        .css(Util.mousePosition(event, appendTo))
         .show()
     else
       @adder.removeData('selection')
@@ -680,7 +684,7 @@ class Annotator extends Delegator
       .map -> return $(this).data("annotation")
 
     appendTo = if @options.bindToDocument? then document.body else @wrapper[0]
-    this.showViewer($.makeArray(annotations), util.mousePosition(event, appendTo))
+    this.showViewer($.makeArray(annotations), Util.mousePosition(event, appendTo))
 
 
   # Annotator#element callback. Sets @ignoreMouseup to true to prevent

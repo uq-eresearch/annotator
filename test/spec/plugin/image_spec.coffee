@@ -16,20 +16,20 @@ describe "Annotator.Plugin.Image", ->
 
   describe "pluginInit", ->
     it "should register as a custom annotation type plugin", ->
-      spyOn(annotator, "addAnnotationPlugin")
+      sinon.spy(annotator, "addAnnotationPlugin")
       plugin.pluginInit()
-      expect(annotator.addAnnotationPlugin).toHaveBeenCalled()
+      assert(annotator.addAnnotationPlugin.called)
 
 
   describe "handlesAnnotation", ->
     it "should return false for a non image annotation", ->
       annotation = {}
-      expect(plugin.handlesAnnotation(annotation)).toBe(false)
+      assert.equal(plugin.handlesAnnotation(annotation), false)
 
     it "should return true for an image annotation", ->
       annotation = {}
       annotation.relativeSelection = ''
-      expect(plugin.handlesAnnotation(annotation)).toBe(true)
+      assert.equal(plugin.handlesAnnotation(annotation), true)
 
   describe "createMarker", ->
     it "should "

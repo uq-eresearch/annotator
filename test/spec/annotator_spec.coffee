@@ -1,29 +1,34 @@
 describe 'Annotator', ->
   annotator = null
   mock = null
+  bindingElement = null
 
-  beforeEach -> annotator = new Annotator($('<div></div>')[0], {})
+  beforeEach ->
+    annotator = new Annotator($('<div></div>')[0], {})
+    bindingElement = annotator.element
+    if annotator.options.bindToDocument
+      bindingElement = $(document.body)
   afterEach  -> $(document).unbind()
 
   describe "events", ->
     it "should call Annotator#onAdderClick() when adder is clicked", ->
       stub = sinon.stub(annotator, 'onAdderClick')
 
-      annotator.element.find('.annotator-adder button').click()
+      bindingElement.find('.annotator-adder button').click()
 
       assert(stub.calledOnce)
 
     it "should call Annotator#onAdderMousedown() when mouse button is held down on adder", ->
       stub = sinon.stub(annotator, 'onAdderMousedown')
 
-      annotator.element.find('.annotator-adder button').mousedown()
+      bindingElement.find('.annotator-adder button').mousedown()
 
       assert(stub.calledOnce)
 
     it "should call Annotator#onHighlightMouseover() when mouse moves over a highlight", ->
       stub = sinon.stub(annotator, 'onHighlightMouseover')
 
-      highlight = $('<span class="annotator-hl" />').appendTo(annotator.element)
+      highlight = $('<span class="annotator-hl" />').appendTo(bindingElement)
       highlight.mouseover()
 
       assert(stub.calledOnce)
@@ -202,7 +207,10 @@ describe 'Annotator', ->
       }))
 
     it "should append the Viewer#element to the Annotator#wrapper", ->
-      assert(mockViewer.element.appendTo.calledWith(annotator.wrapper))
+      if annotator.options.bindToDocument
+        assert(mockViewer.element.appendTo.calledWith(document.body))
+      else
+        assert(mockViewer.element.appendTo.calledWith(annotator.wrapper))
 
   describe "_setupEditor", ->
     mockEditor = null
@@ -248,7 +256,11 @@ describe 'Annotator', ->
       assert(mockEditor.on.calledWith('save', annotator.onEditorSubmit))
 
     it "should append the Editor#element to the Annotator#wrapper", ->
-      assert(mockEditor.element.appendTo.calledWith(annotator.wrapper))
+      if annotator.options.bindToDocument
+        assert(mockEditor.element.appendTo.calledWith(document.body))
+      else
+        assert(mockEditor.element.appendTo.calledWith(annotator.wrapper))
+      # assert(mockEditor.element.appendTo.calledWith(annotator.wrapper))
 
   describe "_setupDynamicStyle", ->
     $fix = null
