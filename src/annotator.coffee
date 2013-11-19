@@ -444,7 +444,8 @@ class Annotator extends Delegator
         this.publish 'annotationsLoaded', [clone]
 
     clone = annotations.slice()
-    loader(annotations) if annotations.length
+    loader annotations
+
     this
 
   # Public: Calls the Store#dumpAnnotations() method.
