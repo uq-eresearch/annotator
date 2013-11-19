@@ -27,7 +27,6 @@ describe 'Annotator', ->
 
     it "should call Annotator#onHighlightMouseover() when mouse moves over a highlight", ->
       stub = sinon.stub(annotator, 'onHighlightMouseover')
-
       highlight = $('<span class="annotator-hl" />').appendTo(bindingElement)
       highlight.mouseover()
 
@@ -36,7 +35,7 @@ describe 'Annotator', ->
     it "should call Annotator#startViewerHideTimer() when mouse moves off a highlight", ->
       stub = sinon.stub(annotator, 'startViewerHideTimer')
 
-      highlight = $('<span class="annotator-hl" />').appendTo(annotator.element)
+      highlight = $('<span class="annotator-hl" />').appendTo(bindingElement)
       highlight.mouseout()
 
       assert(stub.calledOnce)

@@ -87,9 +87,9 @@ class Annotator extends Delegator
         => this.startViewerHideTimer.apply(this, arguments),
         '.annotator-hl')
     else
-      $(appendTo).on("mouseover", ".annotator-hl",
+      $(@element).on("mouseover", ".annotator-hl",
         => this.onHighlightMouseover.apply(this, arguments))
-      $(appendTo).on("mouseout", ".annotator-hl",
+      $(@element).on("mouseout", ".annotator-hl",
         => this.startViewerHideTimer.apply(this, arguments))
 
     # Create adder
