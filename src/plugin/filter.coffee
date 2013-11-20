@@ -39,7 +39,6 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
   options:
     # A CSS selector or Element to append the plugin toolbar to.
     appendTo: 'body'
-
     # An array of filters can be provided on initialisation.
     filters: []
 
@@ -90,7 +89,6 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
     super element, options
 
     @options.filters or= []
-
     @filter  = Annotator.$(@html.filter)
     @filters = []
     @current  = 0
@@ -163,7 +161,8 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
 
     # Skip if a filter for this property has been loaded.
     unless (f for f in @filters when f.property == filter.property).length
-      filter.id = 'annotator-filter-' + filter.property
+      filterpropname = 'annotator-filter-' + filter.property
+      filter.id =  filterpropname# + '-' + Annotator.$('.' + filterpropname).length
       filter.annotations = []
       filter.element = @filter.clone().appendTo(@element)
       filter.element.find('label')
@@ -173,7 +172,7 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
         .attr({
           id: filter.id
           placeholder: Annotator._t('Filter by ') + filter.label + '\u2026'
-        })
+        })#.addClass(filterpropname)
       filter.element.find('button').hide()
 
       # Add the filter to the elements data store.
@@ -182,6 +181,11 @@ class Annotator.Plugin.Filter extends Annotator.Plugin
       @filters.push filter
 
     this
+
+  destroy: () ->
+    @element.remove()
+    this.removeEvents()
+
 
   # Public: Updates the filter.annotations property. Then updates the state
   # of the elements in the DOM. Calls the filter.isFiltered() method to
