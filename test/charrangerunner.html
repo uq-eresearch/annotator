@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mocha</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+  </head>
+  <body>
+    <div id="fixtures" style="display: none"></div>
+    <div id="mocha"></div>
+
+    <!--[if IE]><script src="../lib/vendor/xpath.js"></script><![endif]-->
+    <script src="../lib/vendor/jquery.js"></script>
+    <script src="../lib/vendor/json2.js"></script>
+    <script src="../lib/vendor/showdown.js"></script>
+    <script src="../lib/vendor/diff_match_patch.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/sinon/pkg/sinon.js"></script>
+    <script>
+      // Use mocha's BDD interface
+      mocha.setup('bdd');
+
+      // And chai.js assert
+      var assert = chai.assert;
+    </script>
+    <script src="../lib/helpers/spec_helper.js"></script>
+
+    <script src="../lib/xpath.js"></script>
+
+    <script src="../lib/util.js"></script>
+
+    <script src="../lib/console.js"></script>
+
+    <script src="../lib/class.js"></script>
+
+    <script src="../lib/annotator.js"></script>
+    <script src="../lib/range.js"></script>
+<!--     <script src="../lib/spec/range_spec.js"></script> -->
+
+
+    <script src="../lib/plugin/charrangeselection.js"></script>
+    <script src="../lib/spec/plugin/charrangeselection_spec.js"></script>
+
+    <script>
+      if (window.mochaPhantomJS) {
+        mochaPhantomJS.run();
+      } else {
+        mocha.run();
+      }
+    </script>
+  </body>
+</html>

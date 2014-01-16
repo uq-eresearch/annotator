@@ -78,7 +78,16 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
 
     selectedText = range.toString().replace(/\s+/g, ' ').trim()
     if annotation.originalQuote? and annotation.originalQuote.replace(/\s+/g, ' ').trim() != selectedText
-      console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.originalQuote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
+
+      # Attempt to match fuzzily
+      offsets = fuzzyFindOffsetsFromText(head, annotation.originalQuote, offsets.start)
+
+      range = new CharRange().rangeFromCharOffsets(head, offsets)
+      selectedText = range.toString().replace(/\s+/g, ' ').trim()
+      if annotation.originalQuote? and annotation.originalQuote.replace(/\s+/g, ' ').trim() != selectedText
+        console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.originalQuote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
+      else
+        console.log("FUZZY MATCHED: " + annotation.originalQuote + " to offset: " + offset.start)
       return
 
 #        console.log("findRange", {range: range, text: range.toString()})
@@ -86,8 +95,6 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
     annotation.ranges.push(range)
 
     @annotator.setupAnnotation(annotation)
-
-
 
 # Helper functions for selecting text by character offset, with different
 # html elements. Requires the contained text to be similar, excepting newlines
@@ -105,8 +112,8 @@ class CharRange
     if nodeOffset != lastOffset
       console.log("PANIC - multiple positions of text found")
 
-    offsets.start = calcCharOffset(node.textContent, nodeOffset)
-    offsets.end = calcCharOffset(node.textContent, nodeOffset + text.length)
+    offsets.start = calcStrippedOffset(node.textContent, nodeOffset)
+    offsets.end = calcStrippedOffset(node.textContent, nodeOffset + text.length)
 
     offsets
 
@@ -114,20 +121,20 @@ class CharRange
 
   # Returns an object with
   offsetsFromDomRange: (node, range) ->
-    range = new Range.BrowserRange(range).normalize(node)
-    this.offsetsFromNormalizedRange(node, range)
+    normalizedRange = new Range.BrowserRange(range).normalize(node)
+    this.offsetsFromNormalizedRange(node, normalizedRange)
     
 
-  offsetsFromNormalizedRange: (node, range) ->
+  offsetsFromNormalizedRange: (node, normalizedRange) ->
     offsets = {}
     charCount = 0
     findOffsets = (currNode) ->
       if currNode.hasAttribute?(DOM_ANNOTATOR_IGNORE_ATTRIBUTE)
         return false
       if currNode.nodeType == TEXT_NODE
-        if currNode == range.start
+        if currNode == normalizedRange.start
           offsets.start = charCount
-        if currNode == range.end
+        if currNode == normalizedRange.end
           offsets.end = charCount + cleanText(currNode.textContent).length
         charCount += cleanText(currNode.textContent).length
 
@@ -156,7 +163,7 @@ class CharRange
           range.setStart(currNode, offset)
         if length + charCount >= endOffset and charCount <= endOffset
           # end position is in here
-          offset = calcNodeOffset(currNode.textContent, endOffset - charCount)
+          offset = calcNodeOffset(currNode.textContent, endOffset - charCount, true)
           range.setEnd(currNode, offset)
 
         charCount += length
@@ -168,34 +175,37 @@ class CharRange
 #        console.log("findRange", {range: range, text: range.toString()})
 
 
-# Returns a count used directly on the node, based on a count into a cleaned text
-calcNodeOffset = (text, charOffset) ->
-  nodeCount = 0
-  cleanedCount = 0
-  if charOffset == nodeCount
-    return nodeCount
+# Returns a count used directly on the node, based on a count
+# into a (whitespace) cleaned text
+calcNodeOffset = (text, charOffset, endOffset = false) ->
+  countIncludingSpaces = 0
+  countSkippingSpaces = 0
   for char in text
-    nodeCount++
-    if !(removeChars.test(char))
-      cleanedCount++
-    if charOffset == cleanedCount
-      return nodeCount
-  return nodeCount
+    if countSkippingSpaces == charOffset
+      if !removeChars.test(char) || endOffset
+        return countIncludingSpaces
+
+    countIncludingSpaces++
+    if !removeChars.test(char)
+      countSkippingSpaces++
+
+  return countIncludingSpaces
 
 
 # Return a char offset count, when given a node offset
-calcCharOffset = (text, nodeOffset) ->
-  charOffset = 0
-  nodeCount = 0
-  if nodeOffset == nodeCount
-    return charOffset
+# return an offset skipping whitespace when given a non skipped offset and some text
+calcStrippedOffset = (text, unstrippedOffset) ->
+  strippedOffset = 0
+  unstrippedCount = 0
+  if unstrippedOffset == unstrippedCount
+    return strippedOffset
   for char in text
-    nodeCount++
+    unstrippedCount++
     if !(removeChars.test(char))
-      charOffset++
-    if nodeOffset == nodeCount
-      return charOffset
-  return charOffset
+      strippedOffset++
+    if unstrippedOffset == unstrippedCount
+      return strippedOffset
+  return strippedOffset
 
 
 
@@ -218,8 +228,18 @@ walkDom = (node, func) ->
     walkDom(node, func)
     node = node.nextSibling
 
+#
+# Use the Google diff_match_patch library to search for our text
+fuzzyFindOffsetsFromText = (node, pattern, loc) ->
+  text = $(node).text()
+  dmp = new diff_match_patch()
+  location = dmp.match_main(text, pattern, loc)
 
+  offsets =
+    start: location
+    end: location + pattern.length
 
+  return offsets
 
 
 $ = Annotator.$

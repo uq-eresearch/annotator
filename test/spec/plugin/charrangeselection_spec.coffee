@@ -87,13 +87,14 @@ describe 'CharRange', ->
   beforeEach ->
     addFixture 'charrangeselection'
     charRange = new CharRange()
-    node1 = $('#text1')[0]
+    node1 = $('<p">Some simple sample text</p>')[0]
     textNode1 = node1.firstChild
-    node2 = $('#text2')[0]
-    node3 = $('#text3')[0]
-    nodeTextRepeat1 = $('#textRepeat1')[0]
-    nodeTextRepeat2 = $('#textRepeat2')[0]
-    selectSpan = $('#selectSpan')[0]
+    node2 = $('<p>Some<b> simp<i>le \nsampl</i>e tex</b>t</p>')[0]
+    node3 = $('<pre>Some    simple sample text</pre>')[0]
+    nodeTextRepeat1 = $('<p>This is some text that. This is some text.</p>')[0]
+    nodeTextRepeat2 = $('<p><b>This i</b>s some text th<i>at. Thi</i>s is some text.</p>')[0]
+    # selectSpan = $('#selectSpan')[0]
+    selectSpan = $('<p>This is <span>some</span> text</p>')
 
   afterEach ->
     clearFixtures()
@@ -124,6 +125,19 @@ describe 'CharRange', ->
 
 
   it 'can round trip from a range', ->
+    range = document.createRange()
+    range.setStart(textNode1, 3)
+    range.setEnd(textNode1, 7)
+
+    offsets = charRange.offsetsFromDomRange(node1, range)
+
+    node1 = $('<p">Some simple sample text</p>')[0]
+
+    newRange = charRange.rangeFromCharOffsets(node1, offsets)
+
+    assert.equal(range.toString(), newRange.toString())
+
+  it 'can round trip from a range when the target node has been split', ->
     range = document.createRange()
     range.setStart(textNode1, 3)
     range.setEnd(textNode1, 7)
@@ -226,24 +240,120 @@ describe 'CharRange', ->
 
     range = charRange.rangeFromCharOffsets(nodeTextRepeat2, offsets)
     assert.equal(range.toString() + 2, 'This2')
-    # assert.equal(range.startOffset, 4)
-    # assert.equal(range.endOffset, 1)
 
   it 'can select text perfectly surrounded by a <span>', ->
     range = document.createRange()
-    range.setStartBefore($('#selectSpan span')[0])
-    range.setEndAfter($('#selectSpan span')[0])
+    range.setStartBefore(selectSpan.find('span')[0])
+    range.setEndAfter(selectSpan.find('span')[0])
 
     assert.equal(range.toString(), 'some')
     
-    offsets = charRange.offsetsFromDomRange(selectSpan, range)
+    offsets = charRange.offsetsFromDomRange(selectSpan[0], range)
     assert.equal(offsets.start, 6)
     assert.equal(offsets.end, 10) # skipped ' '
 
-    newRange = charRange.rangeFromCharOffsets(selectSpan, offsets)
-    assert.equal(newRange.toString() + 2, 'some2')    
+    newRange = charRange.rangeFromCharOffsets(selectSpan[0], offsets)
+    assert.equal(newRange.toString() + 2, 'some2')
+
+  # it 'can use fuzzy matching to handle changing text', ->
 
 
 
 
 
+
+describe 'calcNodeOffset', ->
+  it 'can returns a trivial result', ->
+    result = calcNodeOffset('my text', 1)
+    assert.equal(result, 1)
+
+  it 'can skip whitespace when required', ->
+    result = calcNodeOffset('my text', 3)
+    assert.equal(result, 4)
+
+  it 'ignores whitespace at the start of a node', ->
+    result = calcNodeOffset(' my text', 0)
+    assert.equal(result, 1)
+
+  it 'ignores multiple white spaces at the start of a node', ->
+    result = calcNodeOffset('   my text', 0)
+    assert.equal(result, 3)
+
+  it 'ignores white spaces before the selected count', ->
+    result = calcNodeOffset('my. text', 4)
+    assert.equal(result, 5)
+
+  it 'ignores white spaces immediately before the selected count', ->
+    result = calcNodeOffset('at. Thi', 3)
+    assert.equal(result, 4)
+
+  it 'can skip spaces and return correctly at the end of a string', ->
+    result = calcNodeOffset("e si", 3)
+    assert.equal(result, 4)
+
+  it 'returns the same when no spaces and offset 0', ->
+    text = 'abc'
+    assert.equal(calcNodeOffset(text, 0), 0)
+
+  it 'returns the same when no spaces and offset [end]', ->
+    text = 'abc'
+    assert.equal(calcNodeOffset(text, 3), 3)
+
+
+  it 'returns the same when there are no spaces', ->
+    text = 'abc'
+    original_index = 1
+    original_char = text[original_index]
+    new_index = calcNodeOffset(text, original_index)
+    new_char = text[new_index]
+
+    assert.equal(new_char, original_char)
+    assert.equal(new_index, original_index)
+
+
+  it 'ignores white spaces immediately before the selected count', ->
+    #  'a| |b|c'
+    #  0   1 2 3 (ignoring spaces)
+    #  0 1 2 3 4
+    text = 'a bc'
+    original_index = 1
+    original_char = 'b'
+    new_index = calcNodeOffset(text, original_index)
+    new_char = text[new_index]
+
+    assert.equal(new_char, original_char)
+    assert.equal(new_index, 2)
+
+  it 'excludes trailing spaces when finding an end offset', ->
+    result = calcNodeOffset("s is some text.", 1, true)
+    assert.equal(result, 1)
+
+
+
+describe 'calcStrippedOffset', ->
+  it 'returns the same for position [0]', ->
+    text = 'a  bc'
+    assert.equal(calcStrippedOffset(text, 0), 0)
+
+  it 'returns the same when no spaces and offset [end]', ->
+    text = 'abc'
+    assert.equal(calcStrippedOffset(text, 3), 3)
+
+  it 'skips the first character if a space', ->
+    text = ' abc'
+    assert.equal(calcStrippedOffset(text, 0), 0)
+
+  it 'skips the first character if a space, to select second offset', ->
+    text = ' abc'
+    assert.equal(calcStrippedOffset(text, 2), 1)
+
+
+
+describe 'fuzzy matching', ->
+  it 'can find text with the wrong offset', ->
+    node = $('<p>some words that dont match right</p>')
+
+    offsets = fuzzyFindOffsetsFromText(node, 'words', 3)
+
+    assert.equal(offsets.start, 5)
+    assert.equal(offsets.end, 10)
