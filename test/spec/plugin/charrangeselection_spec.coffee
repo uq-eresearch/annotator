@@ -393,3 +393,19 @@ describe 'fuzzy matching', ->
 
     assert.equal(offsets.start, 5)
     assert.equal(offsets.end, 10)
+
+  it 'really works', ->
+    content = '<div>
+
+<h3 id="idp7893504" style="text-align: center">First Fragment, pages 7-11</h3>
+<span style="margin-top: 1em; display: block" class="pb" annotator_ignore="true" unselectable="on" data-n="7">7</span>
+<p>also, their great-etc-grandchildren, owing to miscon-
+ception of certain clauses of the game laws—no crime,</p></div>'
+    node = $(content)
+    offsets = fuzzyFindOffsetsFromText(node, 'their great', 50)
+    console.log(offsets)
+
+    range = new CharRange().createRangeFromOffsets(node, offsets, false)
+    selectedText = range.toString()
+
+    assert.equal(selectedText, "their great")
