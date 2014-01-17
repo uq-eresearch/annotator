@@ -137,9 +137,9 @@ class Annotator.Plugin.Motivations extends Annotator.Plugin
           # check whether there is an element in the viewer with class annotator-motivation:
           # update this if available (this allows other plugins to display motivation in their field - see Prov for example)
           
-          field.parent().parent().find('.annotator-motivation').html(Annotator.$.escape(displayValue) + " ")
+          field.parent().parent().find('.annotator-motivation').html(Util.escape(displayValue) + " ")
           if this.annoPlugin.options.showField
-            field.addClass('annotator-motivation').html('<span class="annotator-motivation">' + Annotator.$.escape(displayValue) + '</span>')
+            field.addClass('annotator-motivation').html('<span class="annotator-motivation">' + Util.escape(displayValue) + '</span>')
           else
             field.remove()
     else

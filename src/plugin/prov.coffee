@@ -29,5 +29,5 @@ class Annotator.Plugin.Prov extends Annotator.Plugin
       field.remove()
 
   formatProvInfo: (creator, created) ->
-    return (if creator then 'by ' + Annotator.$.escape(creator) + ", " else "") + 
-        (if created then jQuery.timeago(new Date(Annotator.$.escape(created))) else "")
+    return (if creator then 'by ' + Util.escape(creator) + ", " else "") + 
+        (if created then jQuery.timeago(new Date(Util.escape(created))) else "")
