@@ -18,11 +18,17 @@ ANNOTATOR=\
 PLUGINS=\
 	plugin/annotateitpermissions.coffee \
 	plugin/auth.coffee \
+	plugin/charrangeselection.coffee \
 	plugin/document.coffee \
 	plugin/filter.coffee \
+	plugin/image.coffee \
 	plugin/kitchensink.coffee \
+	plugin/lorestore.coffee \
 	plugin/markdown.coffee \
+	plugin/motivations.coffee \
 	plugin/permissions.coffee \
+	plugin/prov.coffee \
+	plugin/reply.coffee \
 	plugin/store.coffee \
 	plugin/tags.coffee \
 	plugin/unsupported.coffee
