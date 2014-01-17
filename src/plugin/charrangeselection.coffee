@@ -74,7 +74,7 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
       start: annotation.startOffset
       end: annotation.endOffset
 
-    range = new CharRange().rangeFromCharOffsets(head, offsets)
+    range = new CharRange().createRangeFromOffsets(head, offsets)
 
     selectedText = range.toString().replace(/\s+/g, ' ').trim()
     if annotation.originalQuote? and annotation.originalQuote.replace(/\s+/g, ' ').trim() != selectedText
@@ -82,15 +82,15 @@ class Annotator.Plugin.CharRangeSelection extends Annotator.Plugin
       # Attempt to match fuzzily
       offsets = fuzzyFindOffsetsFromText(head, annotation.originalQuote, offsets.start)
 
-      range = new CharRange().rangeFromCharOffsets(head, offsets)
+      range = new CharRange().createRangeFromOffsets(head, offsets, false)
       selectedText = range.toString().replace(/\s+/g, ' ').trim()
       if annotation.originalQuote? and annotation.originalQuote.replace(/\s+/g, ' ').trim() != selectedText
         console.log("PANIC: annotation is attached incorrectly. Should be: '" + annotation.originalQuote + "'. But is: '" + selectedText + "'", {range: range, annotation: annotation})
+        return
       else
-        console.log("FUZZY MATCHED: " + annotation.originalQuote + " to offset: " + offset.start)
-      return
+        console.log("FUZZY MATCHED: " + annotation.originalQuote + " to offset: " + offsets.start)
 
-#        console.log("findRange", {range: range, text: range.toString()})
+
     annotation.ranges = []
     annotation.ranges.push(range)
 
@@ -144,7 +144,7 @@ class CharRange
 
 
 
-  rangeFromCharOffsets: (node, offsets) ->
+  createRangeFromOffsets: (node, offsets, stripSpaces = true) ->
     startOffset = offsets.start
     endOffset = offsets.end
     charCount = 0 # current progress
@@ -155,16 +155,28 @@ class CharRange
         return false
       if charCount >= endOffset
         return false
+
       if currNode.nodeType == TEXT_NODE
-        length = cleanText(currNode.textContent).length
+        if stripSpaces
+          length = cleanText(currNode.textContent).length
+        else
+          length = currNode.textContent.length
+
+        # start position is in this chunk
         if length + charCount > startOffset and charCount <= startOffset
-          # start position is in here
-          offset = calcNodeOffset(currNode.textContent, startOffset - charCount)
-          range.setStart(currNode, offset)
+          if stripSpaces
+            startPos = calcNodeOffset(currNode.textContent, startOffset - charCount)
+          else
+            startPos = startOffset - charCount
+          range.setStart(currNode, startPos)
+
+        # end position is in this chunk
         if length + charCount >= endOffset and charCount <= endOffset
-          # end position is in here
-          offset = calcNodeOffset(currNode.textContent, endOffset - charCount, true)
-          range.setEnd(currNode, offset)
+          if stripSpaces
+            endPosition = calcNodeOffset(currNode.textContent, endOffset - charCount, true)
+          else
+            endPosition = endOffset - charCount
+          range.setEnd(currNode, endPosition)
 
         charCount += length
 
@@ -172,20 +184,16 @@ class CharRange
 
     range
 
-#        console.log("findRange", {range: range, text: range.toString()})
-
 
 # Returns a count used directly on the node, based on a count
 # into a (whitespace) cleaned text
 calcNodeOffset = (text, charOffset, endOffset = false) ->
-  countIncludingSpaces = 0
   countSkippingSpaces = 0
-  for char in text
+  for char, countIncludingSpaces in text
     if countSkippingSpaces == charOffset
       if !removeChars.test(char) || endOffset
         return countIncludingSpaces
 
-    countIncludingSpaces++
     if !removeChars.test(char)
       countSkippingSpaces++
 

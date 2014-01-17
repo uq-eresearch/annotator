@@ -58,8 +58,6 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
 
       annotator = {}
       annotator.setupAnnotation = sinon.spy()
-      # sinon.stub(annotator, 'setupAnnotation').returns(null)
-      # annotator.setupAnnotation = jasmine.createSpy('setupAnnotation')
       plugin.annotator = annotator
 
       plugin.annotationsLoaded(annotations)
@@ -70,7 +68,45 @@ describe 'Annotator.Plugin.CharRangeSelection', ->
 
     it 'should call annotator.setupAnnotation', ->
       assert(annotator.setupAnnotation.called)
-      # expect(plugin.annotator.setupAnnotation).toHaveBeenCalled()
+
+  describe 'fuzzy matching through annotationsLoaded', ->
+    annotations = []
+    annotator = null
+
+    beforeEach ->
+      annotation =
+        startOffset: 6
+        endOffset: 8
+        originalQuote: 'text'
+        text: 'text'
+
+      annotator = {}
+      annotator.setupAnnotation = sinon.spy()
+      plugin.annotator = annotator
+
+
+
+    it 'should add ranges', ->
+      annotations.push(annotation)
+      plugin.annotationsLoaded(annotations)
+
+      assert(annotation.ranges)
+
+    it 'should call annotator.setupAnnotation', ->
+      annotations.push(annotation)
+      plugin.annotationsLoaded(annotations)
+
+      assert(annotator.setupAnnotation.called)
+
+    it 'should also find different text', ->
+      annotation.originalQuote = 'ipsum'
+      annotation.text = 'ipsum'
+
+      annotations.push(annotation)
+      plugin.annotationsLoaded(annotations)
+
+      assert(annotation.ranges)
+
 
 
 
@@ -133,7 +169,7 @@ describe 'CharRange', ->
 
     node1 = $('<p">Some simple sample text</p>')[0]
 
-    newRange = charRange.rangeFromCharOffsets(node1, offsets)
+    newRange = charRange.createRangeFromOffsets(node1, offsets)
 
     assert.equal(range.toString(), newRange.toString())
 
@@ -144,7 +180,7 @@ describe 'CharRange', ->
 
     offsets = charRange.offsetsFromDomRange(node1, range)
 
-    newRange = charRange.rangeFromCharOffsets(node1, offsets)
+    newRange = charRange.createRangeFromOffsets(node1, offsets)
 
     assert.equal(range.toString(), newRange.toString())
 
@@ -153,7 +189,7 @@ describe 'CharRange', ->
     offsets = 
       start: 3
       end: 7
-    range = charRange.rangeFromCharOffsets(node1, offsets)
+    range = charRange.createRangeFromOffsets(node1, offsets)
 
     assert.equal(range.toString(), 'e sim')
 
@@ -165,8 +201,8 @@ describe 'CharRange', ->
 
     assert.deepEqual(offsets, {start: 4, end: 10})
 
-    range2 = charRange.rangeFromCharOffsets(node2, offsets)
-    range3 = charRange.rangeFromCharOffsets(node3, offsets)
+    range2 = charRange.createRangeFromOffsets(node2, offsets)
+    range3 = charRange.createRangeFromOffsets(node3, offsets)
 
     assert.equal(range2.toString().trim(), text)
     assert.equal(range3.toString().trim(), text)
@@ -177,7 +213,7 @@ describe 'CharRange', ->
     offsets = charRange.offsetsOfString(node3, text)
     assert.deepEqual(offsets, {start: 15, end: 19})
 
-    range2 = charRange.rangeFromCharOffsets(node2, offsets)
+    range2 = charRange.createRangeFromOffsets(node2, offsets)
 
     assert.equal(range2.toString(), text)
 
@@ -188,7 +224,7 @@ describe 'CharRange', ->
     offsets = charRange.offsetsOfString(node3, text)
     assert.deepEqual(offsets, {start: 15, end: 20})
 
-    range2 = charRange.rangeFromCharOffsets(node2, offsets)
+    range2 = charRange.createRangeFromOffsets(node2, offsets)
 
     assert.equal(range2.toString(), text)
 
@@ -200,7 +236,7 @@ describe 'CharRange', ->
 
     assert.deepEqual(offsets, {start: 0, end: 5})
 
-    range2 = charRange.rangeFromCharOffsets(node2, offsets)
+    range2 = charRange.createRangeFromOffsets(node2, offsets)
 
     assert.equal(range2.toString(), text)
 
@@ -238,7 +274,7 @@ describe 'CharRange', ->
     assert.equal(offsets.start, 19)
     assert.equal(offsets.end, 23) # skipped ' '
 
-    range = charRange.rangeFromCharOffsets(nodeTextRepeat2, offsets)
+    range = charRange.createRangeFromOffsets(nodeTextRepeat2, offsets)
     assert.equal(range.toString() + 2, 'This2')
 
   it 'can select text perfectly surrounded by a <span>', ->
@@ -252,7 +288,7 @@ describe 'CharRange', ->
     assert.equal(offsets.start, 6)
     assert.equal(offsets.end, 10) # skipped ' '
 
-    newRange = charRange.rangeFromCharOffsets(selectSpan[0], offsets)
+    newRange = charRange.createRangeFromOffsets(selectSpan[0], offsets)
     assert.equal(newRange.toString() + 2, 'some2')
 
   # it 'can use fuzzy matching to handle changing text', ->
