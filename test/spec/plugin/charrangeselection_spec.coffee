@@ -394,16 +394,17 @@ describe 'fuzzy matching', ->
     assert.equal(offsets.start, 5)
     assert.equal(offsets.end, 10)
 
-  it 'really works', ->
+  it 'still works with annotator_ignore content', ->
     content = '<div>
-
-<h3 id="idp7893504" style="text-align: center">First Fragment, pages 7-11</h3>
-<span style="margin-top: 1em; display: block" class="pb" annotator_ignore="true" unselectable="on" data-n="7">7</span>
+<span class="pb" annotator_ignore="true" unselectable="on" data-n="7">700</span>
 <p>also, their great-etc-grandchildren, owing to miscon-
 ception of certain clauses of the game laws—no crime,</p></div>'
-    node = $(content)
+    node = $(content)[0]
     offsets = fuzzyFindOffsetsFromText(node, 'their great', 50)
     console.log(offsets)
+
+    assert.equal(offsets.start, 6)
+    assert.equal(offsets.end, 17)
 
     range = new CharRange().createRangeFromOffsets(node, offsets, false)
     selectedText = range.toString()

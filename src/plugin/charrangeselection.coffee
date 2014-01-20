@@ -239,7 +239,10 @@ walkDom = (node, func) ->
 #
 # Use the Google diff_match_patch library to search for our text
 fuzzyFindOffsetsFromText = (node, pattern, loc) ->
-  text = $(node).text()
+  cloned_node = $(node).clone()
+  cloned_node.find('[annotator_ignore="true"]').remove()
+  text = cloned_node.text()
+
   dmp = new diff_match_patch()
   location = dmp.match_main(text, pattern, loc)
 
