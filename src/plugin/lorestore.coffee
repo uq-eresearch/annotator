@@ -212,13 +212,24 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     annotations = []
     annos = this._findAnnos(data['@graph'])
     for anno in annos
-      body = this._findById(data['@graph'], anno.hasBody)
+      tags = []
+      body = {}
+      if typeof anno.hasBody == 'object' && !anno.hasBody['@id']
+        for b in anno.hasBody then do(b) =>
+          bodyData = this._findById(data['@graph'], b)
+          if bodyData && typeof bodyData['@type'] == "object" && "oa:Tag" in bodyData['@type'] && bodyData.chars
+            tags.push(bodyData.chars)
+          else
+            body = bodyData
+      else
+        body = this._findById(data['@graph'], anno.hasBody)
       target = this._findById(data['@graph'], anno.hasTarget)
       if (target && target.hasSelector)
         targetsel = this._findById(data['@graph'],target.hasSelector)
       tempanno = {
         "id" : anno['@id']
         "text": body.chars
+        "tags": tags
         "ranges": []
         "motivation": anno.motivatedBy
       }
@@ -548,6 +559,19 @@ class Annotator.Plugin.LoreStore extends Annotator.Plugin
     # check for motivation
     if annotation.motivation
       tempanno['@graph'][0]['oa:motivatedBy'] = {'@id': annotation.motivation}
+    # check for tags
+    if annotation.tags
+      # copy existing body as first item of hasBody array
+      tempanno['@graph'][0]['oa:hasBody'] = [tempanno['@graph'][0]['oa:hasBody']]
+      for tag in annotation.tags then do (tag) =>
+        bodysrid = 'urn:uuid:' + this._uuid()
+        tempanno['@graph'][0]['oa:hasBody'].push({'@id':bodysrid})
+        # generate a body for each tag
+        tempanno['@graph'].push({
+          '@id': bodysrid
+          '@type': ['cnt:ContentAsText', 'oa:Tag'],
+          'cnt:chars': tag
+        })
 
     # add specific target if required
     if (annotation.quote || annotation.relativeSelection)
